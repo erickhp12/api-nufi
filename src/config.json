@@ -1,0 +1,25 @@
+{
+    "production": true,
+    "cookieAge": 86400000,
+    "secret":"$promocom*node*api*@erickhp12$",
+    "telegram": {
+        "bot_token": "6704891008:AAHRK6ryFiew0Hf-rxHlhuAIRRPG_uJvOac",
+        "chats": [
+            {
+                "id": 171573242,
+                "type": "personal",
+                "production":false
+            },
+            {
+                "id": 6704891008,
+                "type": "promocom_bot",
+                "production": true
+            },
+            {
+                "id": -4120575572,
+                "type": "promocom_group",
+                "production": true
+            }
+        ]
+    }
+}
