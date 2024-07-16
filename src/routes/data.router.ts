@@ -7,6 +7,6 @@ const router = Router()
 
 router
     .post('/', getPersonalData)
-    .post('/hardcoded', getPersonalDataHardcoded)
+    .get('/hardcoded', getPersonalDataHardcoded)
 
 export default router
