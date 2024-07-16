@@ -1,4 +1,4 @@
-FROM node:14-alpine
+FROM node:22-alpine3.19
 
 # Settings working directory. All the path will be relative to WORKDIR
 WORKDIR /usr/src/app
@@ -10,4 +10,4 @@ RUN npm install
 COPY . .
 
 # Running the app
-CMD ["node", "./index.js"]
+CMD ["npm", "run", "start"]

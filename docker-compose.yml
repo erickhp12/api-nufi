@@ -1,1 +1,13 @@
-# pendiente
+services:
+  api:
+    restart: "always"
+    build:
+      context: .
+    ports:
+      - "3001:2400"
+    volumes:
+      - .:/src/app
+      - /src/app/node_modules
+
+volumes:
+  api:

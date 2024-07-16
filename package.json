@@ -1,11 +1,11 @@
 {
-  "name": "api-nufi",
+  "name": "nufi",
   "version": "1.0.0",
   "description": "API para sistema NUFI",
   "main": "app.js",
   "scripts": {
     "start:dev": "npx nodemon",
-    "start": "npm run build && node build/index.js",
+    "start": "npx ts-node ./src/index.ts",
     "test": "npm test",
     "build": "rimraf ./build && tsc"
   },

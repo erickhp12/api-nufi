@@ -21,6 +21,4 @@ app.use(helmet())
 
 app.use('/api/v1/personal-data', dataRouter);
 
-// app.get('/', (req, res) => {  
-//   res.send('Hello, TypeScript with Express!' + isAdult({name:'erick', age:18}));
-// })
+app.get('/', (req, res) => res.send(`Hello, API-NUFI is working! Port: ${port}`))
