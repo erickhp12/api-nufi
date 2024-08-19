@@ -1,18 +1,6 @@
 import moment from 'moment';
 import fs from 'fs';
-import config from '../config.json';
-
-interface MailConfig {
-  host: string;
-  port: number;
-  user: string;
-  password: string;
-  sender: string;
-}
-
-interface Config {
-  mail_config: MailConfig;
-}
+import { Clients } from '../models/clientsModel';
 
 interface SuccessResponse<T> {
   error: false;
@@ -24,35 +12,16 @@ interface SuccessResponse<T> {
 interface ErrorResponse {
   error: true;
   message: string;
-  data: any[];
+  data: {};
   results: number;
 }
 
-const log = (title: string, content: string): void => {    
-  fs.appendFileSync(`./logs/${moment().format("DD-MM-YYYY")}.txt`, `${moment().format("ddd-DD-MM HH:mm:ss")} - ${title}: ${content}\n`);
-  console.log(`${moment().format("ddd-DD-MM HH:mm:ss")} - ${title}: ${content}`);
+const log = (content: string): void => { 
+  fs.appendFileSync('./logs/'+moment().format("DD-MM-YYYY")+".txt",`${moment().format("ddd-DD-MM HH:mm:ss")} - ${content}\n'`);
+  console.log(`${moment().format("ddd-DD-MM HH:mm:ss")} - ${content}`);
 }
 
 const sleep = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
-
-// const sendEmail = (title: string, content: string, receivers: string): void => {
-//   const transporter = nodemailer.createTransport({
-//     host: config.mail_config.host,
-//     port: config.mail_config.port,
-//     auth: {
-//       user: config.mail_config.user,
-//       pass: config.mail_config.password
-//     }
-//   });
-
-//   transporter.sendMail({
-//     from: config.mail_config.sender,
-//     to: receivers,
-//     subject: title,
-//     text: content
-//   }).then(() => log(`Correo enviado a ${receivers} 📧`))
-//     .catch(error => log(error.toString()));
-// }
 
 const returnSuccess = <T>(message: string, data: T = {} as T, results: number = 0): SuccessResponse<T> => {
   return {
@@ -67,8 +36,8 @@ const returnError = (message: string): ErrorResponse => {
   return {
     error: true,
     message: message,
-    data: [],
-    results: 0
+    data: {},
+    results: 1
   }
 }
 

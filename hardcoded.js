@@ -39,48 +39,131 @@ const hardcodedData = {
     },
     "rfcData": {
         "status": "success",
-        "message": "resolve!",
+        "code": "00",
+        "message": "RFC válido, y susceptible de recibir facturas",
         "data": {
-            "gdata": "",
-            "curpdata": [
-                {
-                    "parametro": "",
-                    "fechaNacimiento": "25/06/1993",
-                    "docProbatorio": 1,
-                    "segundoApellido": "PARDAVELL",
-                    "curp": "HOPE930625HSPLRR01",
-                    "nombres": "ERICK FERNANDO",
-                    "primerApellido": "HOLGUIN",
-                    "sexo": "HOMBRE",
-                    "claveEntidad": "SP",
-                    "statusCurp": "RCN",
-                    "nacionalidad": "MEX",
-                    "entidad": "San Luis Potosí",
-                    "datosDocProbatorio": {
-                        "entidadRegistro": "24",
-                        "tomo": "",
-                        "claveMunicipioRegistro": "025",
-                        "anioReg": "1993",
-                        "claveEntidadRegistro": "SP",
-                        "foja": "",
-                        "numActa": "00445",
-                        "libro": "",
-                        "municipioRegistro": ""
-                    },
-                    "descriptionStatusCurp": "Registro de cambio no afectando a curp"
-                }
-            ],
-            "files": [],
-            "guid": "6e2e737f-4e79-4239-b8e2-360dc49ab7b6"
-        },
-        "code": 200
+            "estatus": "RFC válido, y susceptible de recibir facturas"
+        }
     },
     "nssData": {
-        "code": 200,
         "status": "success",
-        "message": "La solicitud se ha realizado correctamente",
+        "code": 200,
+        "message": "La petición se ha realizado correctamente",
         "data": {
-            "uuid": "b532d1ed-efd1-4cd9-b15f-1afc9f83f1c4"
+            "nss": {
+                "status": {
+                    "ultima_actualizacion": "2024-07-20 13:28:25",
+                    "mensaje": "termino"
+                },
+                "info": {
+                    "numero_seguridad_social": "33119354182",
+                    "curp": "HOPE930625HSPLRR01",
+                    "nombres": "ERICK FERNANDO",
+                    "apellido_paterno": "HOLGUIN",
+                    "apellido_materno": "PARDAVELL",
+                    "fecha_nacimiento": "25/06/1993",
+                    "lugar_nacimiento": "San Luis Potosí",
+                    "sexo": "HOMBRE",
+                    "base64_tarjeta_nss": "",
+                    "base64_comprobante_localizacion": ""
+                }
+            },
+            "historial": {
+                "status": {
+                    "ultima_actualizacion": "2024-07-20 13:22:12",
+                    "mensaje": "termino"
+                },
+                "info": {
+                    "numero_seguridad_social": "33119354182",
+                    "curp": "HOPE930625HSPLRR01",
+                    "base64_semanas_cotizadas_nss": "",
+                    "ocr": {
+                        "datos": {
+                            "nombre": "",
+                            "curp": "HOPE930625HSPLRR01",
+                            "nss": "33119354182",
+                            "fecha_emision": "20/07/2024",
+                            "semanas_cotizadas": "406",
+                            "semanas_descontadas": "0",
+                            "semanas_reintegradas": "0"
+                        },
+                        "empleos": [
+                            {
+                                "patron": "ENDURANCE TECNOLOGIAS",
+                                "registro_patronal": "A837775110",
+                                "entidda_federativa": "CHIHUAHUA",
+                                "fecha_alta": "15/04/2024",
+                                "fecha_baja": "vigente",
+                                "salario_base": "$862.93"
+                            },
+                            {
+                                "patron": "FTP SOLUCIONES EMPRESARIALES",
+                                "registro_patronal": "Y608401710",
+                                "entidda_federativa": "CIUDAD DE MÉXICO",
+                                "fecha_alta": "16/06/2023",
+                                "fecha_baja": "02/08/2023",
+                                "salario_base": "$217.67"
+                            },
+                            {
+                                "patron": "WIZELINE",
+                                "registro_patronal": "Z294310710",
+                                "entidda_federativa": "JALISCO",
+                                "fecha_alta": "18/10/2021",
+                                "fecha_baja": "19/10/2021",
+                                "salario_base": "$2031.31"
+                            },
+                            {
+                                "patron": "ENDURANCE TECNOLOGIAS",
+                                "registro_patronal": "A837775110",
+                                "entidda_federativa": "CHIHUAHUA",
+                                "fecha_alta": "11/10/2021",
+                                "fecha_baja": "04/05/2023",
+                                "salario_base": "$909.93"
+                            },
+                            {
+                                "patron": "COMERCIALIZADORA Y DISTRIBUIDORA AFAO",
+                                "registro_patronal": "A836948410",
+                                "entidda_federativa": "CHIHUAHUA",
+                                "fecha_alta": "23/10/2018",
+                                "fecha_baja": "11/10/2021",
+                                "salario_base": "$729.46"
+                            },
+                            {
+                                "patron": "CAPSONIC",
+                                "registro_patronal": "A839057410",
+                                "entidda_federativa": "CHIHUAHUA",
+                                "fecha_alta": "08/11/2017",
+                                "fecha_baja": "18/10/2018",
+                                "salario_base": "$622.12"
+                            },
+                            {
+                                "patron": "COMERCIALIZADORA Y DISTRIBUIDORA AFAO",
+                                "registro_patronal": "A836948410",
+                                "entidda_federativa": "CHIHUAHUA",
+                                "fecha_alta": "15/08/2016",
+                                "fecha_baja": "09/11/2017",
+                                "salario_base": "$223.98"
+                            },
+                            {
+                                "patron": "RECARGATODO DE NORTEAMERICA S DE RL DE CV",
+                                "registro_patronal": "A836537010",
+                                "entidda_federativa": "CHIHUAHUA",
+                                "fecha_alta": "18/06/2012",
+                                "fecha_baja": "16/01/2013",
+                                "salario_base": "$134.39"
+                            },
+                            {
+                                "patron": "EDM",
+                                "registro_patronal": "A832570910",
+                                "entidda_federativa": "CHIHUAHUA",
+                                "fecha_alta": "18/07/2011",
+                                "fecha_baja": "19/08/2011",
+                                "salario_base": "$62.62"
+                            }
+                        ]
+                    }
+                }
+            }
         }
     },
     "satData": {
@@ -189,12 +272,47 @@ const hardcodedData = {
         ]
     },
     "rugData": {
-        "status": "success",
-        "code": 200,
-        "mensaje": "no se encotraron resultados",
-        "registros": 0,
-        "data": []
-    },
+    "status": "success",
+    "code": 200,
+    "mensaje": "La consulta se ha realizado correctamente",
+    "registros": 1,
+    "data": [
+        {
+            "numero_garantia": "168078",
+            "numero_operacion": "650296",
+            "tipo_operacion": "INSCRIPCIÓN",
+            "nombre_otorgante": "EZEQUIEL MUÑOZ FLORES",
+            "folio_electronico": "R2013090901BU",
+            "fecha_inscripcion": "2013-09-11 16:30:50",
+            "tipo_bienes_muebles": "Vehículos de motor. Productos agrícolas.",
+            "operacion": "Certificación",
+            "url_operacion": "https://rug.economia.gob.mx/Rug/home/certificaTramite.do?idGarantia=168078&idTramite=650296",
+            "acreedor": "semillas fertilizantes y agroquimicos muñoz sa de cv",
+            "otorgantes": [
+                {
+                    "nombre_razon_denominacion_social": "EZEQUIEL MUÑOZ FLORES",
+                    "tipo_persona": "Persona Física",
+                    "folio_electronico": "R2013090901BU",
+                    "tiene_rfc": "No cuenta con RFC"
+                }
+            ],
+            "deudores": [
+                {
+                    "nombre_razon_denominacion_social": "EZEQUIEL MUÑOZ FLORES",
+                    "tipo_persona": "Persona Física"
+                },
+                {
+                    "nombre_razon_denominacion_social": "MA DE JESUS FLORES PEREZ",
+                    "tipo_persona": "Persona Física"
+                }
+            ],
+            "monto": "240000 peso mexicano",
+            "tipo_garantia": "Derivada de un Crédito de Habilitación o Avío",
+            "vigencia": "156 meses",
+            "descripcion": "Agencia      Nombre del Cliente Nombre del Promotor Clasificación Cliente Tipo de cartera Plazo del Crédito Esquema de Atencion Programa / Producto Mes Monto Programado Tasa de Interes  Destino específico  Programa de Financiamieto\nMorelia, Mich. MONDRAGON BENITIS J     Primer piso Cuenta Corriente  Septiembre   500,000.00  9.80% FORESTAL Desarrollo de Zonas Forestales\nMorelia, Mich. GUZMAN MALDONADO AARON     Primer piso Avio Preautorizado  Septiembre   153,320.00  12.00% AGUACATE Básico\nMorelia, Mich. VALDES VALENCIA ROBERTO     Primer piso Avio Preautorizado  Septiembre   811,195.25  12.00% AGUACTE Básico\nMorelia, Mich. BARAJAS SANDOVAL J.     Primer piso Avio Preautorizado  Septiembre   923,289.52  12.00% AGUACATE Básico\nMorelia, Mich. CASTILLO VILLALOBOS JOSE     Primer piso Avio Preautorizado  Septiembre   104,719.00  13.00% AGUACATE Básico\nMorelia, Mich. AYALA BARRIGA ANA KAREN     Primer piso Avio Preautorizado  Septiembre   210,000.00  13.00% AGUACATE Básico\nMorelia, Mich. ALCARAZ HERRERA GUSTAVO     Primer piso Avio Preautorizado  Septiembre   371,689.00  12.00% AGUACATE Básico\nMorelia, Mich. HERRERA VILLEGAS MA. GUADALUPE     Primer piso Avio Preautorizado  Septiembre   553,567.67  12.00% AGUACATE Básico\nMorelia, Mich. ROJAS PEÐA JOSE     Primer piso Avio Preautorizado  Septiembre   577,500.00  12.00% AGUACATE Básico\nMorelia, Mich. TORRES BEJAR ANTONIO     Primer piso Avio Preautorizado  Septiembre   603,408.20  13.00% AGUACATE Básico\nMorelia, Mich. JOSE ESCOBAR AVILA     Primer piso Avio Preautorizado  Septiembre   300,235.54  11.00% AGUACATE Básico\nMorelia, Mich. MARIA DE LOURDES ARREYGUE TORRES     Primer piso SIMPLE  Septiembre   1,000,000.00  12.00% ADQUISICION DE INSUMOS Básico\nMorelia, Mich. JOSE LUIS PULIDO NARANJO     Primer piso Refaccionario  Septiembre   1,450,000.00  12.00% CONSTRUCCION DE BODEGA Desarrollo de la infraestructura en el Sector Rural\nMorelia, Mich. FINANSERCA SA DE CV SOFOM ENR     Segundo piso EIF Descuento Cartera  Septiembre   4,000,000.00  11.00% CAPITAL DE TRABAJO Básico\nMorelia, Mich. MARTINEZ MUÐOZ MONICA     Primer piso Cuenta Corriente  Septiembre   770,080.00  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. MIRANDA GAONA VALENTIN     Primer piso Avio Preautorizado  Septiembre   1,000,968.00  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. GUZMAN RAMIREZ RAFAEL     Primer piso Avio Preautorizado  Septiembre   1,050,000.00  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. SORIA ALCANTAR JORGE     Primer piso Avio Preautorizado  Septiembre   1,092,182.61  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. PINEDA BECERRA OLIVIER     Primer piso Avio Preautorizado  Septiembre   1,190,000.00  13.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. SANCHEZ PEÐA ANGELINA     Primer piso Avio Preautorizado  Septiembre   1,505,000.00  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. SANCHEZ ARMAS JULIO     Primer piso Avio Preautorizado  Septiembre   4,011,168.00  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. GRUPO ALPEZA SA DE CV     Segundo piso EIF Descuento Cartera  Septiembre   10,000,000.00  10.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. MENDOZA RAMIREZ ERICK     Primer piso Avio Preautorizado  Septiembre   2,500,000.00  12.00% ZARZAMORA Básico\nMorelia, Mich. financiera tarhiata     Segundo piso EIF Descuento Cartera  Septiembre   5,000,000.00  10.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. HUMBERTO SERRATO DIAZ     Primer piso REFACCIONARIO  Septiembre   2,400,000.00  14.00% COMERCIO Desarrollo de la infraestructura en el Sector Rural\nMorelia, Mich. ALEJANDRO MARIQUEZ     Primer piso REFACCIONARIO  Septiembre   1,012,000.00  12.00% OLLA DE AGUA Básico\nMorelia, Mich. ROBERTO HOFFAY VALDES VALENCIA     Primer piso Avio Preautorizado  Septiembre   811,000.00  11.00% AGUACATE Básico\nMorelia, Mich. HURTADO TORRES FELICIANO     Primer piso Avio Preautorizado  Septiembre   936,627.83  12.50% AGUACATE Básico\nMorelia, Mich. HURTADO VILLANUEVA RAMIRO     Primer piso Avio Preautorizado  Septiembre   1,120,000.00  13.00% AGUACATE Básico\nMorelia, Mich. HURTADO HERNANDEZ LAZARO     Primer piso Avio Preautorizado  Septiembre   322,846.73  12.00% AGUACATE Básico\nUn camión marca dina con cabina nueva tipo d-531-e5 color azul modelo 1968 mtor d-102757 serie 007655 acredita la propiedad con factura número 1159 expedida por la empresa camiones dina de Jalisco sa de cv , a favor de  FAMILIA MUÑOZ FLORES SPR DE RL, 15 NOVIEMBRE 2008."
+        }
+    ]
+},
     "blackListData": {
         "code": 200,
         "status": "success",
@@ -540,7 +658,17 @@ const hardcodedData = {
             }
         }
     },
-    "infonavitData": {},
+    "infonavitData": {
+    "code": 200,
+    "status": "success",
+    "message": "NSS consultada",
+    "data": {
+        "estatus_credito": "Crédito vigente",
+        "producto_credito": "Crédito Apoyo INFONAVIT",
+        "numero_credito": "0000000000",
+        "fecha_otorgamiento": "04/may/2023"
+    }
+    },
     "enrichmentDataPhone": {
         "status": "success",
         "code": 200,
@@ -717,7 +845,67 @@ const hardcodedData = {
                 "block_position": 2
             }
         ]
+    },
+    "rugData": {
+        "status": "success",
+        "code": 200,
+        "mensaje": "La consulta se ha realizado correctamente",
+        "registros": 1,
+        "data": [
+            {
+                "numero_garantia": "168078",
+                "numero_operacion": "650296",
+                "tipo_operacion": "INSCRIPCIÓN",
+                "nombre_otorgante": "EZEQUIEL MUÑOZ FLORES",
+                "folio_electronico": "R2013090901BU",
+                "fecha_inscripcion": "2013-09-11 16:30:50",
+                "tipo_bienes_muebles": "Vehículos de motor. Productos agrícolas.",
+                "operacion": "Certificación",
+                "url_operacion": "https://rug.economia.gob.mx/Rug/home/certificaTramite.do?idGarantia=168078&idTramite=650296",
+                "acreedor": "semillas fertilizantes y agroquimicos muñoz sa de cv",
+                "otorgantes": [
+                    {
+                        "nombre_razon_denominacion_social": "EZEQUIEL MUÑOZ FLORES",
+                        "tipo_persona": "Persona Física",
+                        "folio_electronico": "R2013090901BU",
+                        "tiene_rfc": "No cuenta con RFC"
+                    }
+                ],
+                "deudores": [
+                    {
+                        "nombre_razon_denominacion_social": "EZEQUIEL MUÑOZ FLORES",
+                        "tipo_persona": "Persona Física"
+                    },
+                    {
+                        "nombre_razon_denominacion_social": "MA DE JESUS FLORES PEREZ",
+                        "tipo_persona": "Persona Física"
+                    }
+                ],
+                "monto": "240000 peso mexicano",
+                "tipo_garantia": "Derivada de un Crédito de Habilitación o Avío",
+                "vigencia": "156 meses",
+                "descripcion": "Agencia      Nombre del Cliente Nombre del Promotor Clasificación Cliente Tipo de cartera Plazo del Crédito Esquema de Atencion Programa / Producto Mes Monto Programado Tasa de Interes  Destino específico  Programa de Financiamieto\nMorelia, Mich. MONDRAGON BENITIS J     Primer piso Cuenta Corriente  Septiembre   500,000.00  9.80% FORESTAL Desarrollo de Zonas Forestales\nMorelia, Mich. GUZMAN MALDONADO AARON     Primer piso Avio Preautorizado  Septiembre   153,320.00  12.00% AGUACATE Básico\nMorelia, Mich. VALDES VALENCIA ROBERTO     Primer piso Avio Preautorizado  Septiembre   811,195.25  12.00% AGUACTE Básico\nMorelia, Mich. BARAJAS SANDOVAL J.     Primer piso Avio Preautorizado  Septiembre   923,289.52  12.00% AGUACATE Básico\nMorelia, Mich. CASTILLO VILLALOBOS JOSE     Primer piso Avio Preautorizado  Septiembre   104,719.00  13.00% AGUACATE Básico\nMorelia, Mich. AYALA BARRIGA ANA KAREN     Primer piso Avio Preautorizado  Septiembre   210,000.00  13.00% AGUACATE Básico\nMorelia, Mich. ALCARAZ HERRERA GUSTAVO     Primer piso Avio Preautorizado  Septiembre   371,689.00  12.00% AGUACATE Básico\nMorelia, Mich. HERRERA VILLEGAS MA. GUADALUPE     Primer piso Avio Preautorizado  Septiembre   553,567.67  12.00% AGUACATE Básico\nMorelia, Mich. ROJAS PEÐA JOSE     Primer piso Avio Preautorizado  Septiembre   577,500.00  12.00% AGUACATE Básico\nMorelia, Mich. TORRES BEJAR ANTONIO     Primer piso Avio Preautorizado  Septiembre   603,408.20  13.00% AGUACATE Básico\nMorelia, Mich. JOSE ESCOBAR AVILA     Primer piso Avio Preautorizado  Septiembre   300,235.54  11.00% AGUACATE Básico\nMorelia, Mich. MARIA DE LOURDES ARREYGUE TORRES     Primer piso SIMPLE  Septiembre   1,000,000.00  12.00% ADQUISICION DE INSUMOS Básico\nMorelia, Mich. JOSE LUIS PULIDO NARANJO     Primer piso Refaccionario  Septiembre   1,450,000.00  12.00% CONSTRUCCION DE BODEGA Desarrollo de la infraestructura en el Sector Rural\nMorelia, Mich. FINANSERCA SA DE CV SOFOM ENR     Segundo piso EIF Descuento Cartera  Septiembre   4,000,000.00  11.00% CAPITAL DE TRABAJO Básico\nMorelia, Mich. MARTINEZ MUÐOZ MONICA     Primer piso Cuenta Corriente  Septiembre   770,080.00  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. MIRANDA GAONA VALENTIN     Primer piso Avio Preautorizado  Septiembre   1,000,968.00  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. GUZMAN RAMIREZ RAFAEL     Primer piso Avio Preautorizado  Septiembre   1,050,000.00  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. SORIA ALCANTAR JORGE     Primer piso Avio Preautorizado  Septiembre   1,092,182.61  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. PINEDA BECERRA OLIVIER     Primer piso Avio Preautorizado  Septiembre   1,190,000.00  13.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. SANCHEZ PEÐA ANGELINA     Primer piso Avio Preautorizado  Septiembre   1,505,000.00  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. SANCHEZ ARMAS JULIO     Primer piso Avio Preautorizado  Septiembre   4,011,168.00  12.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. GRUPO ALPEZA SA DE CV     Segundo piso EIF Descuento Cartera  Septiembre   10,000,000.00  10.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. MENDOZA RAMIREZ ERICK     Primer piso Avio Preautorizado  Septiembre   2,500,000.00  12.00% ZARZAMORA Básico\nMorelia, Mich. financiera tarhiata     Segundo piso EIF Descuento Cartera  Septiembre   5,000,000.00  10.00% AGUACATE Atención a Población indígena y Productores en Condiciones de Marginación.\nMorelia, Mich. HUMBERTO SERRATO DIAZ     Primer piso REFACCIONARIO  Septiembre   2,400,000.00  14.00% COMERCIO Desarrollo de la infraestructura en el Sector Rural\nMorelia, Mich. ALEJANDRO MARIQUEZ     Primer piso REFACCIONARIO  Septiembre   1,012,000.00  12.00% OLLA DE AGUA Básico\nMorelia, Mich. ROBERTO HOFFAY VALDES VALENCIA     Primer piso Avio Preautorizado  Septiembre   811,000.00  11.00% AGUACATE Básico\nMorelia, Mich. HURTADO TORRES FELICIANO     Primer piso Avio Preautorizado  Septiembre   936,627.83  12.50% AGUACATE Básico\nMorelia, Mich. HURTADO VILLANUEVA RAMIRO     Primer piso Avio Preautorizado  Septiembre   1,120,000.00  13.00% AGUACATE Básico\nMorelia, Mich. HURTADO HERNANDEZ LAZARO     Primer piso Avio Preautorizado  Septiembre   322,846.73  12.00% AGUACATE Básico\nUn camión marca dina con cabina nueva tipo d-531-e5 color azul modelo 1968 mtor d-102757 serie 007655 acredita la propiedad con factura número 1159 expedida por la empresa camiones dina de Jalisco sa de cv , a favor de  FAMILIA MUÑOZ FLORES SPR DE RL, 15 NOVIEMBRE 2008."
+            }
+        ]
+    },
+    "sat74Data": {
+        "status": "success",
+        "code": 200,
+        "message": "operacion realizada con exito",
+        "count": 1,
+        "data": [
+            {
+                "rfc": "HEMA520803J55",
+                "razon_social": "arcadio hernandez macias",
+                "tipo_persona": "f",
+                "supuesto": "artículo 74",
+                "fecha_autorizacion": "11/09/2023",
+                "monto": "30518.00",
+                "fecha_publicacion": "19/10/2023",
+                "entidad_federativa": "zacatecas"
+            }
+        ]
     }
 }
 
-export default hardcodedData
+export default hardcodedData;
