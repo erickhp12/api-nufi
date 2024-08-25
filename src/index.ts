@@ -7,6 +7,7 @@ const { sequelize } = require('./utils/database')
 
 dotevnv.config()
 
+import authRouter from './routes/auth.router'
 import dataRouter from './routes/data.router'
 import clientsRouter from './routes/clients.router'
 import { log } from "./utils/utils"
@@ -24,6 +25,7 @@ app.use(cors())
 app.use(helmet())
 
 
+app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/data', dataRouter)
 app.use('/api/v1/clients', clientsRouter)
 

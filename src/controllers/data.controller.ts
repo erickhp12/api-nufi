@@ -11,6 +11,9 @@ import { Certificates } from '../models/satModel.js'
 import { Rfc } from '../models/rfcModel.js'
 import { Siger } from '../models/sigerModel.js'
 import { ProfessionalData } from '../models/professionalModel.js'
+import { RugData } from '../models/rugModel.js'
+import { BlackList } from '../models/blackListModel.js'
+import { Juditial } from '../models/juditialModel.js'
 
 const URL:string   = process.env.NUFU_API_URL || ''
 const token:string = process.env.NUFI_API_KEY || ''
@@ -266,11 +269,11 @@ export const registerRfc = async (req:any, res:Response) => {
     
     try {
       log(`[2] - se registró el RFC correctamente, inicia validateRFC: ${clientFromDB.rfc}`)
-      const { data, message }:any = await axios.post(`${URL}/estatusrfc/valida`, {rfc: clientFromDB.rfc}, headers)
+      const { data }:any = await axios.post(`${URL}/estatusrfc/valida`, {rfc: clientFromDB.rfc}, headers)
       log(`validateRFC data: ${JSON.stringify(data)}`)
-      log(`validateRFC message: ${JSON.stringify(message)}`)
+      log(`validateRFC message: ${JSON.stringify(data.message)}`)
     
-      rfcFromDB.message = message
+      rfcFromDB.message = data.message
       rfcFromDB.valid = true
       rfcFromDB.save()
     } catch (error:any) {
@@ -288,24 +291,23 @@ export const registerRfc = async (req:any, res:Response) => {
 
 export const registerNss = async (req:any, res:Response) => {
   log(`Inicia registerNss ${JSON.stringify(req.body)}`)
-  let { curp } = req.body
-  
+  const { curp } = req.body
   const { client_id } = req.params
   
   const nssFromDB:any = await Webhook.findOne({ where: { client_id: client_id }})
   log(`nssFromDB: ${JSON.stringify(nssFromDB)}`)
-  if (nssFromDB) return res.status(200).json(returnSuccess('NSS Solicidado anteriormente', {}, 1))
+  if (nssFromDB) return res.status(200).json(returnSuccess('NSS Solicitado anteriormente', {}, 1))
   
   try {
-    log(`inicia solicitud de nss, curp: ${curp}`)
+    log(`inicia solicitud de NSS, curp: ${curp}`)
     const { data } = await axios.get(`${URL}/numero_seguridad_social/v2/consultar?curp=${curp}`, headers2)
-    const nssCreated = await Webhook.findOrCreate({ where: { client_id: client_id, uuid_nss: data.data.uuid }})
-    log(`Respuesta directa de consulta de nss: ${JSON.stringify(nssCreated)}`)
+    log(`Respuesta directa de consulta de NSS: ${JSON.stringify(data)}`)
+    await Webhook.create({ client_id: client_id, uuid_nss: data.data.uuid })
     
     return res.status(201).json(returnSuccess('NSS registrado correctamente', {}, 1))
   } catch (error:any) {
-    log(`[X] data > controller, Error al guardar el nss [X]: ${error.message}`)
-    return res.status(500).json(returnError('Ocurrió un error interno al validar el nss'))
+    log(`[X] data > controller, Error al guardar el NSS [X]: ${error.message}`)
+    return res.status(500).json(returnError('Ocurrió un error interno al validar el NSS'))
   }
 }
 
@@ -316,7 +318,7 @@ export const registerSiger = async (req:any, res:Response) => {
   
   const sigerFromDB:any = await Siger.findAll({ where: { client_id: client_id }})
   log(`Se obtiene desde BD: ${JSON.stringify(sigerFromDB)}`)
-  if (sigerFromDB) return res.status(200).json(returnSuccess('Información obtenida correctamente', {}, 1))
+  if (sigerFromDB.length > 0) return res.status(200).json(returnSuccess('Información obtenida correctamente', {}, 1))
   
   try {
     log(`No existe en BD: Inicia consulta ${client_id}`)
@@ -324,31 +326,29 @@ export const registerSiger = async (req:any, res:Response) => {
     const body:object = {
       'socio': `${clientFromDB.name} ${clientFromDB.secondName} ${clientFromDB.lastName} ${clientFromDB.secondLastName}`
     }
-    const { data }:any = await axios.post(`${URL}/siger/v4/busqueda_socio`, body, headers2)
+    log(`Antes de enviar a consultar a nufi SIGER: ${JSON.stringify(body)}`)
+    const responseFromApi:any = await axios.post(`${URL}/siger/v4/busqueda_socio`, body, headers2)
+    log(`Respuesta directa de consulta de SIGER: ${JSON.stringify(responseFromApi.data)}`)
 
-    for (let item of data) {
-      console.log('item --->', item)
-      await Siger.create({
-        client_id: client_id,
-        commerces: item
-      })
-    }
+    responseFromApi.data.data.forEach(async (item:any) => {
+      await Siger.create({ client_id: client_id, commerces: item })
+    });
     
     return res.status(201).json(returnSuccess('SIGER registrado correctamente', {}, 1))
   } catch (error:any) {
-    log(`[X] data > controller, Error al guardar los datos del SIGER [X]: ${error.message}`)
+    log(`[X] data > controller, registerSiger Error al guardar los datos del SIGER [X]: ${error.message}`)
     return res.status(500).json(returnError('Ocurrió un error interno al obtener los datos del SIGER'))
   }
 }
 
 
-export const registerProfessionalData = async (req:any, res:Response) => {
+export const registerProfessionalData = async (req:any, res:any) => {
   log(`Inicia registerProfessionalData ${JSON.stringify(req.body)}`)
   const { client_id } = req.params
   
   const professionalData:any = await ProfessionalData.findAll({ where: { client_id: client_id }})
   log(`Se obtiene desde BD: ${JSON.stringify(professionalData)}`)
-  if (professionalData.length > 0) return res.status(200).json(returnSuccess('Información obtenida correctamente', {}, 1))
+  if (professionalData.length > 0) return res.status(200).json(returnSuccess('Información obtenida correctamente 2', {}, 1))
   
   try {
     log(`No existe en BD: Inicia consulta ${client_id}`)
@@ -359,423 +359,180 @@ export const registerProfessionalData = async (req:any, res:Response) => {
       'apellido_paterno': clientFromDB.lastName,
       'apellido_materno': clientFromDB.secondLastName
     }
-    log(`Antes de enviar a consultar a nufi: ${JSON.stringify(body)}`)
-    const { data }:any = await axios.post(`${URL}/CedulaProfesional/consultar`, body, headers)
-    // const { data }:any = {
-    // "status": "success",
-    // "code": 200,
-    // "message": "Operacion exitosa",
-    //   "data": [
-    //       {
-    //           "nombre": "LUCÍA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "0435151",
-    //           "profesion": "PROFESOR EN EDUCACIÓN PRIMARIA",
-    //           "genero": "MUJER",
-    //           "institucion": "DIRECCIÓN GENERAL DE EDUCACIÓN NORMAL Y ACTUALIZAC",
-    //           "fechaRegistro": "1977",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCÍA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "0495132",
-    //           "profesion": "TÉCNICO EN ENFERMERÍA",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO",
-    //           "fechaRegistro": "1978",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "ANA LUCIA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "09145595",
-    //           "profesion": "LICENCIATURA EN INGENIERÍA INDUSTRIAL ADMINISTRATIVA",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD DE LEÓN, PLANTEL SILAO",
-    //           "fechaRegistro": "2015",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA HERNANDEZ GONZALEZ GUERRA",
-    //           "numCedula": "09931429",
-    //           "profesion": "MAESTRÍA EN PSICOTERAPIA SISTÉMICA",
-    //           "genero": "MUJER",
-    //           "institucion": "INSTITUTO BATESON DE PSICOTERAPIA SISTÉMICA",
-    //           "fechaRegistro": "2016",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "10337486",
-    //           "profesion": "LICENCIATURA EN DERECHO",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD AUTÓNOMA DE GUERRERO",
-    //           "fechaRegistro": "2017",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA LOURDES HERNANDEZ GONZALEZ",
-    //           "numCedula": "10476677",
-    //           "profesion": "LICENCIATURA EN COMUNICACIÓN",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD AUTÓNOMA DE BAJA CALIFORNIA",
-    //           "fechaRegistro": "2017",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "10501841",
-    //           "profesion": "LICENCIATURA EN ADMINISTRACIÓN",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO",
-    //           "fechaRegistro": "2017",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA JANETH HERNANDEZ GONZALEZ",
-    //           "numCedula": "10696072",
-    //           "profesion": "MAESTRÍA EN CIENCIAS DE LA COMPUTACIÓN",
-    //           "genero": "MUJER",
-    //           "institucion": "INSTITUTO TECNOLÓGICO DE CIUDAD MADERO (I.T.R.)",
-    //           "fechaRegistro": "2017",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA SELENNE HERNANDEZ GONZALEZ",
-    //           "numCedula": "10729877",
-    //           "profesion": "LICENCIATURA EN ODONTOLOGÍA",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD DE CIENCIAS Y ADMINISTRACIÓN",
-    //           "fechaRegistro": "2017",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA SELENNE HERNANDEZ GONZALEZ",
-    //           "numCedula": "11854590",
-    //           "profesion": "ESPECIALIDAD EN ORTODONCIA",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD UCAD",
-    //           "fechaRegistro": "2019",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "ANA LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "12184684",
-    //           "profesion": "LICENCIATURA EN COMUNICACIÓN, PUBLICIDAD Y RELACIONES PÚBLICAS",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD PANAMERICANA CAMPUS GUADALAJARA",
-    //           "fechaRegistro": "2021",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "12286996",
-    //           "profesion": "LICENCIATURA EN ADMINISTRACIÓN DE EMPRESAS",
-    //           "genero": "MUJER",
-    //           "institucion": "BENEMÉRITA UNIVERSIDAD AUTÓNOMA DE PUEBLA",
-    //           "fechaRegistro": "2021",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCÍA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "1309240",
-    //           "profesion": "TÉCNICO EN ENFERMERÍA",
-    //           "genero": "MUJER",
-    //           "institucion": "ESCUELA DE ENFERMERAS GUADALUPE, A.C.",
-    //           "fechaRegistro": "1989",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA GUADALUPE HERNANDEZ GONZALEZ",
-    //           "numCedula": "13227009",
-    //           "profesion": "LICENCIATURA EN INGENIERÍA QUÍMICA",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD AUTÓNOMA DE SAN LUIS POTOSÍ",
-    //           "fechaRegistro": "2023",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCÍA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "2442747",
-    //           "profesion": "LICENCIATURA EN ADMINISTRACIÓN",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO",
-    //           "fechaRegistro": "1997",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "ANA LUCÍA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "2897837",
-    //           "profesion": "LICENCIATURA COMO CIRUJANO DENTISTA",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD VERACRUZANA",
-    //           "fechaRegistro": "1999",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "ANA LUCIA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "3274258",
-    //           "profesion": "LICENCIATURA EN CONTADURÍA",
-    //           "genero": "MUJER",
-    //           "institucion": "INSTITUTO TECNOLÓGICO DE MATAMOROS, TAMPS. (I.T.R.",
-    //           "fechaRegistro": "2001",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "CARMEN LUCÍA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "3321515",
-    //           "profesion": "PROFNAL. TEC. COMO ASISTENTE DIRECTIVO",
-    //           "genero": "MUJER",
-    //           "institucion": "COLEGIO NACIONAL DE EDUCACIÓN PROFESIONAL TÉCNICA",
-    //           "fechaRegistro": "2001",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LOURDES LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "3667366",
-    //           "profesion": "LICENCIATURA EN COMUNICACIÓN",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD ANÁHUAC",
-    //           "fechaRegistro": "2002",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA NELIDA HERNANDEZ GONZALEZ",
-    //           "numCedula": "3775279",
-    //           "profesion": "LICENCIATURA EN EDUCACIÓN PREESCOLAR",
-    //           "genero": "MUJER",
-    //           "institucion": "INST.BENEM.Y CENT.ESC. NOR.DEL EDO.DE CHI.PROF. LU",
-    //           "fechaRegistro": "2002",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA VIVIANA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "4030114",
-    //           "profesion": "TEC. SUP. UNIVER. EN ADMINISTRACIÓN",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD TECNOLÓGICA DE LEÓN",
-    //           "fechaRegistro": "2004",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "DIANA LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "4345674",
-    //           "profesion": "TÉCNICO EN ADMINISTRACIÓN",
-    //           "genero": "MUJER",
-    //           "institucion": "C.E.T.I.S. NO. 48",
-    //           "fechaRegistro": "2005",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "MARIA LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "4984356",
-    //           "profesion": "LICENCIATURA COMO CONTADOR PÚBLICO AUDITOR",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD METROPOLITANA DE MONTERREY",
-    //           "fechaRegistro": "2006",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA HERNANDEZ GONZALEZ GUERRA",
-    //           "numCedula": "5157780",
-    //           "profesion": "LICENCIATURA EN PSICOLOGÍA",
-    //           "genero": "MUJER",
-    //           "institucion": "INSTITUTO TECNOLÓGICO Y DE ESTUDIOS SUPERIORES DE",
-    //           "fechaRegistro": "2007",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA HERNANDEZ GONZÁLEZ",
-    //           "numCedula": "5768262",
-    //           "profesion": "TEC. PROFNAL. EN ENFERMERÍA GENERAL",
-    //           "genero": "MUJER",
-    //           "institucion": "ESCUELA DE ENFERMERIA FLORENCIA NIGHTINGALE",
-    //           "fechaRegistro": "2008",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA DEL CARMEN HERNANDEZ GONZALEZ",
-    //           "numCedula": "6168165",
-    //           "profesion": "LICENCIATURA EN LENGUA Y LITERATURA HISPANOAMERICANA",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD AUTÓNOMA DE CHIAPAS",
-    //           "fechaRegistro": "2009",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCÍA VIVIANA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "6238552",
-    //           "profesion": "LICENCIATURA EN ADMINISTRACIÓN",
-    //           "genero": "MUJER",
-    //           "institucion": "INSTITUTO TECNOLÓGICO DE LEÓN (I.T.R.)",
-    //           "fechaRegistro": "2009",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCÍA VICTORIA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "6303173",
-    //           "profesion": "LICENCIATURA EN ADMINISTRACIÓN FINANCIERA",
-    //           "genero": "MUJER",
-    //           "institucion": "INSTITUTO TECNOLÓGICO Y DE ESTUDIOS SUPERIORES DE MONTERREY",
-    //           "fechaRegistro": "2010",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "ANA LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "6457606",
-    //           "profesion": "TÉCNICO EN ANÁLISIS Y TECNOLOGÍA DE ALIMENTOS",
-    //           "genero": "MUJER",
-    //           "institucion": "C.E.T.I.S. NO. 139",
-    //           "fechaRegistro": "2010",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "ANA LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "6535141",
-    //           "profesion": "PROFNAL. ASOCIADO EN ADMINISTRACIÓN DE LA MICRO Y PEQUEÑA EMPRESA",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD AUTÓNOMA DE GUADALAJARA",
-    //           "fechaRegistro": "2010",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "ANA LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "6684182",
-    //           "profesion": "LICENCIATURA EN ADMINISTRACIÓN FINANCIERA",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD AUTÓNOMA DE AGUASCALIENTES",
-    //           "fechaRegistro": "2010",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "7075814",
-    //           "profesion": "LICENCIATURA EN EDUCACIÓN PREESCOLAR",
-    //           "genero": "MUJER",
-    //           "institucion": "COLEGIO SIMÓN BOLIVAR DE CHILPANCINGO, A.C.",
-    //           "fechaRegistro": "2011",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "ANA LUCÍA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "7237922",
-    //           "profesion": "ESPECIALIDAD EN ENDODONCIA",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD DEL EJÉRCITO Y FUERZA AÉREA",
-    //           "fechaRegistro": "2011",
-    //           "tipo": "A1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "7934966",
-    //           "profesion": "LICENCIATURA EN ENFERMERÍA",
-    //           "genero": "MUJER",
-    //           "institucion": "BENEMÉRITA UNIVERSIDAD AUTÓNOMA DE PUEBLA",
-    //           "fechaRegistro": "2013",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "ANA LUCÍA HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "8054558",
-    //           "profesion": "LICENCIATURA EN DERECHO",
-    //           "genero": "MUJER",
-    //           "institucion": "INSTITUTO TECNOLÓGICO Y DE ESTUDIOS SUPERIORES DE MONTERREY",
-    //           "fechaRegistro": "2013",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCÍA JANETH HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "8977250",
-    //           "profesion": "LICENCIATURA EN INGENIERÍA EN SISTEMAS COMPUTACIONALES",
-    //           "genero": "MUJER",
-    //           "institucion": "INSTITUTO TECNOLÓGICO DE CIUDAD MADERO (I.T.R.)",
-    //           "fechaRegistro": "2015",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCÍA ELIZABETH HERNÁNDEZ GONZÁLEZ",
-    //           "numCedula": "9340797",
-    //           "profesion": "LICENCIATURA EN EDUCACIÓN",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD DEL DESARROLLO PROFESIONAL, SEDE SALTILLO",
-    //           "fechaRegistro": "2015",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "LUCIA GUADALUPE HERNANDEZ GONZALEZ",
-    //           "numCedula": "9340869",
-    //           "profesion": "TÉCNICO EN ENFERMERÍA GENERAL",
-    //           "genero": "MUJER",
-    //           "institucion": "ESCUELA DE ENFERMERÍA FLORENCIA NIGHTINGALE",
-    //           "fechaRegistro": "2015",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       },
-    //       {
-    //           "nombre": "DULCE LUCIA HERNANDEZ GONZALEZ",
-    //           "numCedula": "9429477",
-    //           "profesion": "LICENCIATURA EN TRABAJO SOCIAL",
-    //           "genero": "MUJER",
-    //           "institucion": "UNIVERSIDAD DE GUADALAJARA",
-    //           "fechaRegistro": "2015",
-    //           "tipo": "C1",
-    //           "estado": ""
-    //       }
-    //   ]
-    // }
-    console.log('response --->', data)
-    log(`Respuesta directa de consulta de CedulaProfesional: ${JSON.stringify(data)}`)
+    log(`Antes de enviar a consultar a nufi registerProfessionalData: ${JSON.stringify(body)}`)
+    const responseFromApi:any = await axios.post(`${URL}/CedulaProfesional/consultar`, body, headers)
+    // const responseFromApi:any = await axios.post(`http://127.0.0.1:2700/api/v1/auth/professional`, body, headers)
+    log(`Respuesta directa de consulta de CedulaProfesional: ${JSON.stringify(responseFromApi.data)}`)
     
-    for (let item of data) {
-      console.log('item --->', item)
-      await ProfessionalData.create({
-        client_id: client_id,
-        data: item
-      })
-    }
     
+    responseFromApi.data.data.forEach(async (item:any) => {
+      // Validacion solicitada por Alan para evitar ingresar datos incorrectos: no introducir cedulas de profesionales menores a 15 años de la edad del candidato
+      if (item.fechaRegistro > moment(clientFromDB.dob).format('YYYY') + 15) {
+        await ProfessionalData.create({ client_id: client_id, data: item })
+      }
+    });
     return res.status(201).json(returnSuccess('Datos de profesión registrados correctamente', {}, 1))
   } catch (error:any) {
-    log(`[X] data > controller, Error al guardar los datos de los datos de profesión [X]: ${error.message}`)
+    log(`[X] data > controller, registerProfessionalData Error al guardar los datos de los datos de profesión [X]: ${error.message}`)
     return res.status(500).json(returnError('Ocurrió un error interno al obtener los datos de profesión'))
   }
 }
 
+
+export const deleteProfessionalDataById = async (req:any, res:any) => {
+  log(`Inicia deleteProfessionalDataById ${JSON.stringify(req.body)}`)
+  try {
+    const professionalData:any = await ProfessionalData.findByPk(req.params.id)
+    professionalData.destroy()
+    return res.status(200).json(returnSuccess('Elemento eliminado correctamente', {}, 1))
+  } catch (error:any) {
+    log(`[X] data > controller, deleteProfessionalDataById Error al eliminar el registro los datos de los datos de profesión [X]: ${error.message}`)
+    return res.status(500).json(returnError('Ocurrió un error interno al eliminar los datos de profesión'))
+  }
+}
+
+
+export const registerRugData = async (req:any, res:any) => {
+  log(`Inicia registerRugData ${JSON.stringify(req.body)}`)
+  const { client_id } = req.params
+  
+  const rugData:any = await RugData.findAll({ where: { client_id: client_id }})
+  log(`Se obtiene desde BD: ${JSON.stringify(rugData)}`)
+  if (rugData.length > 0) return res.status(200).json(returnSuccess('Información obtenida correctamente', {}, 1))
+  
+  try {
+    log(`No existe en BD: Inicia consulta ${client_id}`)
+    const clientFromDB:any = await Clients.findByPk(client_id)
+
+    const body:object = {
+      'descripcion_de_bienes': '',
+      'nombre_otorgante': `${clientFromDB.name} ${clientFromDB.secondName} ${clientFromDB.lastName} ${clientFromDB.secondLastName}`,
+      'folio_electronico_otorgante': '',
+      'numero_garantia_o_asiento': '',
+      'curp_otorgante': '',
+      'rfc_otorgante': ''
+    }
+    log(`Antes de enviar a consultar a nufi rugData: ${JSON.stringify(body)}`)
+    // const responseFromApi:any = await axios.post(`${URL}/rug/v3/consulta`, body, headers2)
+    const responseFromApi:any = {"status":"success","code":200,"mensaje":"no se encotraron resultados","registros":0,"data":[]}
+    log(`Respuesta directa de consulta de RUG: ${JSON.stringify(responseFromApi.data)}`)
+
+    if (responseFromApi.data.length === 0) {
+      console.log('caso 1', responseFromApi.data)
+      await RugData.create({ client_id: client_id, data: 'No se encontraron resultados', requested: true })
+      return res.status(200).json(returnSuccess('No se encontraron datos de RUG', {}, 1))
+    } else {
+      console.log('caso 2', responseFromApi.data)
+      responseFromApi.data.data.forEach(async (item:any) => {
+        await RugData.create({ client_id: client_id, data: item })
+      })
+      return res.status(201).json(returnSuccess('Datos de RUG registrados correctamente', {}, 1))
+    }
+  } catch (error:any) {
+    log(`[X] data > controller, rugData Error al guardar los datos de los datos de RUG [X]: ${error.message}`)
+    return res.status(500).json(returnError('Ocurrió un error interno al obtener los datos de RUG'))
+  }
+}
+
+
+export const registerBlackList = async (req:any, res:any) => {
+  log(`Inicia registerBlackList ${JSON.stringify(req.body)}`)
+  const { client_id } = req.params
+  
+  const blacklistFromDB:any = await BlackList.findAll({ where: { client_id: client_id }})
+  log(`Se obtiene desde BD: ${JSON.stringify(blacklistFromDB)}`)
+  if (blacklistFromDB.length > 0 && blacklistFromDB.requested === false) return res.status(200).json(returnSuccess('Información obtenida correctamente', {}, 1))
+  
+  try {
+    log(`No existe en BD: Inicia consulta ${client_id}`)
+    const clientFromDB:any = await Clients.findByPk(client_id)
+
+    const body:object = {
+      'nombre_completo': `${clientFromDB.name} ${clientFromDB.secondName} ${clientFromDB.lastName} ${clientFromDB.secondLastName}`,
+      'primer_nombre': clientFromDB.name,
+      'segundo_nombre': clientFromDB.secondName,
+      'apellidos': `${clientFromDB.lastName} ${clientFromDB.secondLastName}`,
+      'fecha_nacimiento': '',
+      'lugar_nacimiento': ''
+    }
+    
+    log(`Antes de enviar a consultar a nufi blacklist: ${JSON.stringify(body)}`)
+    const responseFromApi:any = await axios.post(`${URL}/perfilamiento/v1/aml`, body, headers2)
+    // const responseFromApi:any = {"status":"success","code":200,"mensaje":"no se encotraron resultados","registros":0,"data":[]}
+    log(`Respuesta directa de consulta de blacklist: ${JSON.stringify(responseFromApi.data)}`)
+
+    await BlackList.create({ client_id: client_id, data: responseFromApi.data })
+    return res.status(201).json(returnSuccess('Datos de listas negras registrados correctamente', {}, 1))
+  } catch (error:any) {
+    log(`[X] data > controller, registerBlackList Error al guardar los datos de los datos de listas negras [X]: ${error.message}`)
+    return res.status(500).json(returnError('Ocurrió un error interno al obtener los datos de listas negras'))
+  }
+}
+
+
+export const registerJuditial = async (req:any, res:any) => {
+  log(`Inicia registerJuditial ${JSON.stringify(req.body)}`)
+  const { client_id } = req.params
+  
+  const juditialFromDB:any = await Juditial.findAll({ where: { client_id: client_id }})
+  log(`Se obtiene desde BD: ${JSON.stringify(juditialFromDB)}`)
+  if (juditialFromDB.length > 0 && juditialFromDB.requested === false) return res.status(200).json(returnSuccess('Información obtenida correctamente', {}, 1))
+  
+  try {
+    log(`No existe en BD: Inicia consulta ${client_id}`)
+    const clientFromDB:any = await Clients.findByPk(client_id)
+
+    const body:object = {
+      'nombre': clientFromDB.name,
+      'paterno': clientFromDB.lastName,
+      'materno': clientFromDB.secondLastName,
+      'detalle': true,
+      'estado': 'nacional'
+    }
+    log(`Antes de enviar a consultar a nufi expedientes judiciales: ${JSON.stringify(body)}`)
+    const responseFromApi:any = await axios.post(`${URL}/antecedentes_judiciales/v2/persona_fisica_nacional`, body, headers3)
+    log(`Respuesta directa de consulta de expedientes judiciales: ${JSON.stringify(responseFromApi.data)}`)
+
+    await Juditial.create({ client_id: client_id, data: responseFromApi.data })
+    return res.status(201).json(returnSuccess('Datos de expedientes judiciales registrados correctamente', {}, 1))
+  } catch (error:any) {
+    log(`[X] data > controller, registerJuditial Error al guardar los datos de los datos de  expedientes judiciales [X]: ${error.message}`)
+    return res.status(500).json(returnError('Ocurrió un error interno al obtener los datos de  expedientes judiciales'))
+  }
+}
+
+
+export const getNss = async (req:any, res:Response) => {
+  try {
+    const { client_id } = req.params
+
+    const webhookData:any = await Webhook.findOne({
+      where: { client_id: client_id },
+      attributes: [
+        'client_id',
+        'uuid_nss',
+        'uuid_historial',
+        'uuid_infonavit',
+        'nss_completed',
+        'history_completed'
+      ]
+    })
+    log(`webhookData: ${JSON.stringify(webhookData)}`)
+    const body:object = {
+      uuid_nss: webhookData.uuid_nss,
+      uuid_historial: webhookData.uuid_historial || '',
+    }
+    log(`Antes de enviar a consultar a nufi get status: ${JSON.stringify(body)}`)
+    const responseFromAPI:any = await axios.post(`${URL}/numero_seguridad_social/v2/status`, body, headers2)
+    log(`[getStatus response] data ${JSON.stringify(responseFromAPI.data)}`)
+    
+    return res.status(200).json(returnSuccess('NSS obtenido correctamente', responseFromAPI.data, 1))
+
+  } catch (error:any) {
+    log(`[X] getStatus Error [X]: ${error.message}`)
+    return res.status(500).json(returnError('Ocurrió un error interno al obtener el NSS'))
+  }
+}
 
 export const getWebhookData = (req:Request, res:Response) => {
   log(`getWebhookData ${JSON.stringify(req.body)}`)

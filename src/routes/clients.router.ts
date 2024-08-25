@@ -5,7 +5,8 @@ import {
     createClient,
     getClients,
     getClientDetail,
-    getIdByCurp
+    getIdByCurp,
+    updateClient
 } from '../controllers/clients.controller.ts'
 
 const router = Router()
@@ -17,5 +18,8 @@ router
     .get('/', getClients)
     .get('/:id', getClientDetail)
     .get('/get-id-by-curp/:id', getIdByCurp)
+
+router
+    .put('/:id', updateClient)
 
 export default router

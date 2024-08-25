@@ -39,7 +39,7 @@ const Certificates = sequelize.define('Certificates', {
 })
 
 
-// sequelize.sync({alter: true}).then(() => console.log('satModel synced', '')).catch((err) => console.log('Error syncing usersModel', err.toString()))
+// sequelize.sync({alter: true}).then(() => console.log('satModel synced', '')).catch((err) => console.log('Error syncing satModel', err.toString()))
 
 module.exports = {
     Certificates

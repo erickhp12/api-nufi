@@ -48,10 +48,62 @@ const generateRandomNumber = (length: number): number | undefined => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+
+const isPasswordValid = (password:string) => {
+  // Check for at least 8 characters
+  if (password.length < 8) {
+    return false;
+  }
+
+  // Check for at least 1 uppercase letter
+  if (!/[A-Z]/.test(password)) {
+    return false;
+  }
+
+  // Check for at least 1 lowercase letter
+  if (!/[a-z]/.test(password)) {
+    return false;
+  }
+
+  // Check for at least 1 numeric digit
+  if (!/\d/.test(password)) {
+    return false;
+  }
+
+  // Check for at least one of these symbols @#$%^&*!
+  if (!/[@#$%^&*!]/.test(password)) {
+    return false;
+  }
+
+  // All requirements met
+  return true;
+}
+
+const isUsernameValid = (username:string) => {
+  if (typeof username !== 'string' || username.length !== 10) return false;
+  return true;
+}
+
+const isEmailValid = (email:string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+const isPhoneValid = (phone:string) => {
+    if (typeof phone !== 'string') return false;
+    const digits = phone.replace(/\D/g, '');
+    return digits.length === 10 && digits === phone;
+}
+
+
 export {
   returnError,
   returnSuccess,
   generateRandomNumber,
   log,
-  sleep
+  sleep,
+  isPasswordValid,
+  isUsernameValid,
+  isEmailValid,
+  isPhoneValid
 };

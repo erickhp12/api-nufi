@@ -47,8 +47,12 @@ const Clients = sequelize.define('Clients', {
         type: DataTypes.STRING(50),
         allowNull: true
     },
-    url: {
+    comments: {
         type: DataTypes.STRING(255),
+        allowNull: true
+    },
+    status: {
+        type: DataTypes.STRING(50),
         allowNull: true
     },
 }, {

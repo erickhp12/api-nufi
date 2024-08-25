@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize')
 const { sequelize } = require('../utils/database')
 
-const ProfessionalData = sequelize.define('ProfessionalData', {
+const BlackList = sequelize.define('BlackList', {
     client_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -14,12 +14,16 @@ const ProfessionalData = sequelize.define('ProfessionalData', {
         type: DataTypes.JSON,
         allowNull: true
     },
+    requested: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
 }, {
-    tableName: 'professional_data'
+    tableName: 'blacklist_data'
 })
 
-// sequelize.sync({ alter: true }).then(() => console.log('ProfessionalData synced', '')).catch((err) => console.log('Error syncing ProfessionalData', err.toString()))
+// sequelize.sync({ alter: true }).then(() => console.log('BlackList synced', '')).catch((err) => console.log('Error syncing BlackList', err.toString()))
 
 module.exports = {
-    ProfessionalData
+    BlackList
 }

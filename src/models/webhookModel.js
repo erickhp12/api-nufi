@@ -27,11 +27,11 @@ const Webhook = sequelize.define('Webhook', {
         defaultValue: 0,
         allowNull: true
     },
-    jsonContent: {
-        type: DataTypes.TEXT,
-        allowNull: true
+    nss_completed: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     },
-    completed: {
+    history_completed: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
     }

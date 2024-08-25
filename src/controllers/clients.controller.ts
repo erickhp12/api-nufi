@@ -6,6 +6,9 @@ import { Curp } from '../models/curpModel.js'
 import { Rfc } from '../models/rfcModel.js'
 import { Siger } from '../models/sigerModel.js'
 import { ProfessionalData } from '../models/professionalModel.js'
+import { RugData } from '../models/rugModel.js'
+import { BlackList } from '../models/blackListModel.js'
+import { Webhook } from '../models/webhookModel.js'
 
 
 export const createClient = async (req:any, res:Response) => {
@@ -83,6 +86,8 @@ export const getClientDetail = async (req:Request, res:Response) => {
       'dob',
       'nss',
       'phone',
+      'comments',
+      'status',
       'revision_completed',
       'createdAt'
     ]
@@ -104,6 +109,8 @@ export const getClientDetail = async (req:Request, res:Response) => {
     dob: userFromDB.dob,
     nss: userFromDB.nss,
     phone: userFromDB.phone,
+    comments: userFromDB.comments,
+    status: userFromDB.status,
     revision_completed: userFromDB.revision_completed,
     fullName:`${userFromDB.name || ''} ${userFromDB.secondName || ''} ${userFromDB.lastName} ${userFromDB.secondLastName}`,
     createdAt: userFromDB.createdAt
@@ -111,15 +118,21 @@ export const getClientDetail = async (req:Request, res:Response) => {
   const rfcData = await Rfc.findOne({ where: { client_id: req.params.id } })
   const sigerData = await Siger.findAll({ where: { client_id: req.params.id } })
   const professionalDataFromDB:any = await ProfessionalData.findAll({ where: { client_id: req.params.id } })
+  const rugData:any = await RugData.findAll({ where: { client_id: req.params.id } })
+  const blacklistData:any = await BlackList.findOne({ where: { client_id: req.params.id } })
+  const webhookData:any = await Webhook.findOne({ where: { client_id: req.params.id } })
   data.user = user
   data.curpData = curpData
   data.rfcData = rfcData
   data.sigerData = sigerData
+  data.rugData = rugData
+  data.blacklistData = blacklistData
+  data.webhookData = webhookData
   let professionalData:any[] = []
   for (let i = 0; i < professionalDataFromDB.length; i++) {
+    professionalDataFromDB[i].data.id = professionalDataFromDB[i].id
     professionalData.push(professionalDataFromDB[i].data)
   }
-  console.log('professionalData: ', professionalData)
   data.professionalData = professionalData
   return res.status(200).json(returnSuccess('Información obtenida correctamente', data, 1))
 }
@@ -134,4 +147,22 @@ export const getIdByCurp = async (req:Request, res:Response) => {
   if (!userFromDB) return res.status(404).json(returnError('No se encontró el registro'))
   console.log(`user id: ${userFromDB.id}`)
   return res.status(200).json(returnSuccess('Información obtenida correctamente', userFromDB, 1))
+}
+
+
+export const updateClient = async (req:any, res:Response) => {
+  try {
+    log(`updateClient ${JSON.stringify(req.body)}`)
+    const { comments, status } = req.body
+    const { id } = req.params
+    const clientFromDB:any = await Clients.findByPk(id)
+    
+    clientFromDB.comments = comments
+    clientFromDB.status = status
+    clientFromDB.save()
+    return res.status(201).json(returnSuccess('Cliente actualizado correctamente', clientFromDB, 1))
+  } catch (error:any) {
+    log(`[X] data > controller, updateClient [X]: ${error.message}`)
+    return res.status(500).json(returnError('Ocurrió un error al actualizar los datos del cliente'))
+  }
 }

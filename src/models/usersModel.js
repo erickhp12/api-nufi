@@ -76,7 +76,7 @@ const UserPermissions = sequelize.define('UserPermissions', {
     tableName: 'user_permissions'
 })
 
-sequelize.sync({alter: true}).then(() => console.log('usersModel synced', '')).catch((err) => console.log('Error syncing usersModel', err.toString()))
+// sequelize.sync({alter: true}).then(() => console.log('usersModel synced', '')).catch((err) => console.log('Error syncing usersModel', err.toString()))
 
 module.exports = {
     Users,
