@@ -4,7 +4,6 @@ import axios from 'axios'
 import fs from 'fs';
 const path = require('path');
 const mindee = require("mindee");
-import { createWorker } from 'tesseract.js';
 
 import { fixAccents, fixAccentsInObject, log, returnError, returnSuccess, sleep } from '../utils/utils.ts'
 import { Curp } from '../models/curpModel.js'
