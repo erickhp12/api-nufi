@@ -96,6 +96,45 @@ const isPhoneValid = (phone:string) => {
 }
 
 
+const fixAccents = (text: string): string => {
+  const accentMap: { [key: string]: string } = {
+    '\u00e1': 'á',
+    '\u00e9': 'é',
+    '\u00ed': 'í',
+    '\u00f3': 'ó',
+    '\u00fa': 'ú',
+    '\u00f1': 'ñ',
+    '\u00fc': 'ü'
+  };
+
+  return text.replace(/\\u[\dA-F]{4}/gi, (match) => {
+    const unicodeChar = String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
+    return accentMap[unicodeChar] || unicodeChar;
+  });
+}
+
+const fixAccentsInObject = (obj: any): any => {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => fixAccentsInObject(item));
+  }
+
+  const result: { [key: string]: any } = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      if (typeof obj[key] === 'string') {
+        result[key] = fixAccents(obj[key]);
+      } else {
+        result[key] = fixAccentsInObject(obj[key]);
+      }
+    }
+  }
+  return result;
+}
+
 export {
   returnError,
   returnSuccess,
@@ -105,5 +144,7 @@ export {
   isPasswordValid,
   isUsernameValid,
   isEmailValid,
-  isPhoneValid
+  isPhoneValid,
+  fixAccents,
+  fixAccentsInObject
 };

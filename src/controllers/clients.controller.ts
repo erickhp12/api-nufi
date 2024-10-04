@@ -9,6 +9,8 @@ import { ProfessionalData } from '../models/professionalModel.js'
 import { RugData } from '../models/rugModel.js'
 import { BlackList } from '../models/blackListModel.js'
 import { Webhook } from '../models/webhookModel.js'
+import { Juditial } from '../models/juditialModel.js'
+import { MindeeIdentification } from '../models/mindeeIdentificationModel.js'
 
 
 export const createClient = async (req:any, res:Response) => {
@@ -93,11 +95,6 @@ export const getClientDetail = async (req:Request, res:Response) => {
     ]
   })
   console.log(`user: ${JSON.stringify(userFromDB)}`)
-  const curpData = await Curp.findOne({
-    where: {
-      client_id: req.params.id
-    }
-  })
   let user = {
     id: userFromDB.id,
     name: userFromDB.name,
@@ -115,12 +112,15 @@ export const getClientDetail = async (req:Request, res:Response) => {
     fullName:`${userFromDB.name || ''} ${userFromDB.secondName || ''} ${userFromDB.lastName} ${userFromDB.secondLastName}`,
     createdAt: userFromDB.createdAt
   }
+  const curpData = await Curp.findOne({ where: { client_id: req.params.id } })
   const rfcData = await Rfc.findOne({ where: { client_id: req.params.id } })
   const sigerData = await Siger.findAll({ where: { client_id: req.params.id } })
   const professionalDataFromDB:any = await ProfessionalData.findAll({ where: { client_id: req.params.id } })
   const rugData:any = await RugData.findAll({ where: { client_id: req.params.id } })
   const blacklistData:any = await BlackList.findOne({ where: { client_id: req.params.id } })
   const webhookData:any = await Webhook.findOne({ where: { client_id: req.params.id } })
+  const juditialData:any = await Juditial.findOne({ where: { client_id: req.params.id } })
+  const idData:any = await MindeeIdentification.findOne({ where: { client_id: req.params.id } })
   data.user = user
   data.curpData = curpData
   data.rfcData = rfcData
@@ -128,6 +128,8 @@ export const getClientDetail = async (req:Request, res:Response) => {
   data.rugData = rugData
   data.blacklistData = blacklistData
   data.webhookData = webhookData
+  data.juditialData = juditialData
+  data.idData = idData
   let professionalData:any[] = []
   for (let i = 0; i < professionalDataFromDB.length; i++) {
     professionalDataFromDB[i].data.id = professionalDataFromDB[i].id
@@ -164,5 +166,19 @@ export const updateClient = async (req:any, res:Response) => {
   } catch (error:any) {
     log(`[X] data > controller, updateClient [X]: ${error.message}`)
     return res.status(500).json(returnError('Ocurrió un error al actualizar los datos del cliente'))
+  }
+}
+
+
+export const deleteClient = async (req:any, res:Response) => {
+  try {
+    log(`deleteClient ${JSON.stringify(req.params.id)}`)
+    const { id } = req.params
+    const clientFromDB:any = await Clients.findByPk(id)
+    clientFromDB.destroy()
+    return res.status(201).json(returnSuccess('Candidato eliminado correctamente', clientFromDB, 1))
+  } catch (error:any) {
+    log(`[X] data > controller, deleteClient [X]: ${error.message}`)
+    return res.status(500).json(returnError('Ocurrió un error al actualizar los datos del candidato'))
   }
 }

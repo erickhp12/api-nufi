@@ -12,6 +12,7 @@ import dataRouter from './routes/data.router'
 import clientsRouter from './routes/clients.router'
 import { log } from "./utils/utils"
 import { checkUUID } from "./utils/tasks"
+import path from "path"
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -28,6 +29,8 @@ app.use(helmet())
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/data', dataRouter)
 app.use('/api/v1/clients', clientsRouter)
+
+app.use('/api/v1/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/', (req, res) => res.send(`Hello, API-NUFI is working! Port: ${port}`))
 

@@ -6,7 +6,8 @@ import {
     getClients,
     getClientDetail,
     getIdByCurp,
-    updateClient
+    updateClient,
+    deleteClient
 } from '../controllers/clients.controller.ts'
 
 const router = Router()
@@ -21,5 +22,8 @@ router
 
 router
     .put('/:id', updateClient)
+
+router
+    .delete('/:id', deleteClient)
 
 export default router
