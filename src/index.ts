@@ -10,6 +10,7 @@ dotevnv.config()
 import authRouter from './routes/auth.router'
 import dataRouter from './routes/data.router'
 import clientsRouter from './routes/clients.router'
+import usersRouter from './routes/users.router'
 import { log } from "./utils/utils"
 import { checkUUID } from "./utils/tasks"
 import path from "path"
@@ -29,6 +30,7 @@ app.use(helmet())
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/data', dataRouter)
 app.use('/api/v1/clients', clientsRouter)
+app.use('/api/v1/users', usersRouter)
 
 app.use('/api/v1/uploads', express.static(path.join(__dirname, '../uploads')));
 

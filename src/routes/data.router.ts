@@ -11,6 +11,7 @@ import {
     registerRugData,
     registerBlackList,
     registerJuditial,
+    registerGoogle,
     getNss,
     readIdentification,
     deleteIdentificationById
@@ -47,6 +48,7 @@ router
     .post('/rug-data/:client_id', registerRugData)
     .post('/blacklist/:client_id', registerBlackList)
     .post('/juditial/:client_id', registerJuditial)
+    .post('/google/:client_id', registerGoogle)
     
 router
     .get('/nss/:client_id', getNss)

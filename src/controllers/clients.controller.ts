@@ -1,4 +1,4 @@
-
+const { Op } = require('sequelize');
 import { Request, Response } from 'express'
 import { log, returnError, returnSuccess } from '../utils/utils.ts'
 import { Clients } from '../models/clientsModel.js'
@@ -11,6 +11,7 @@ import { BlackList } from '../models/blackListModel.js'
 import { Webhook } from '../models/webhookModel.js'
 import { Juditial } from '../models/juditialModel.js'
 import { MindeeIdentification } from '../models/mindeeIdentificationModel.js'
+import { Google } from '../models/googleModel.js';
 
 
 export const createClient = async (req:any, res:Response) => {
@@ -72,10 +73,16 @@ export const getClients = async (req:Request, res:Response) => {
 export const getClientDetail = async (req:Request, res:Response) => {
   log(`Inicia getClientDetail ${req.params.id}`)
   let data:any = {}
-  // let user:any = {}
   const userFromDB:any = await Clients.findOne({
     where: {
-      id: req.params.id
+      [Op.or]: [
+        {
+          id: req.params.id
+        },
+        {
+          curp: { [Op.like]: `%${req.params.id}%` }
+        }
+      ]
     },
     attributes: [
       'id',
@@ -112,15 +119,16 @@ export const getClientDetail = async (req:Request, res:Response) => {
     fullName:`${userFromDB.name || ''} ${userFromDB.secondName || ''} ${userFromDB.lastName} ${userFromDB.secondLastName}`,
     createdAt: userFromDB.createdAt
   }
-  const curpData = await Curp.findOne({ where: { client_id: req.params.id } })
-  const rfcData = await Rfc.findOne({ where: { client_id: req.params.id } })
-  const sigerData = await Siger.findAll({ where: { client_id: req.params.id } })
-  const professionalDataFromDB:any = await ProfessionalData.findAll({ where: { client_id: req.params.id } })
-  const rugData:any = await RugData.findAll({ where: { client_id: req.params.id } })
-  const blacklistData:any = await BlackList.findOne({ where: { client_id: req.params.id } })
-  const webhookData:any = await Webhook.findOne({ where: { client_id: req.params.id } })
-  const juditialData:any = await Juditial.findOne({ where: { client_id: req.params.id } })
-  const idData:any = await MindeeIdentification.findOne({ where: { client_id: req.params.id } })
+  const curpData = await Curp.findOne({ where: { client_id: userFromDB.id } })
+  const rfcData = await Rfc.findOne({ where: { client_id: userFromDB.id } })
+  const sigerData = await Siger.findAll({ where: { client_id: userFromDB.id } })
+  const professionalDataFromDB:any = await ProfessionalData.findAll({ where: { client_id: userFromDB.id } })
+  const rugData:any = await RugData.findAll({ where: { client_id: userFromDB.id } })
+  const blacklistData:any = await BlackList.findOne({ where: { client_id: userFromDB.id } })
+  const webhookData:any = await Webhook.findOne({ where: { client_id: userFromDB.id } })
+  const juditialData:any = await Juditial.findOne({ where: { client_id: userFromDB.id } })
+  const googleData:any = await Google.findOne({ where: { client_id: userFromDB.id } })
+  const idData:any = await MindeeIdentification.findOne({ where: { client_id: userFromDB.id } })
   data.user = user
   data.curpData = curpData
   data.rfcData = rfcData
@@ -129,6 +137,7 @@ export const getClientDetail = async (req:Request, res:Response) => {
   data.blacklistData = blacklistData
   data.webhookData = webhookData
   data.juditialData = juditialData
+  data.googleData = googleData
   data.idData = idData
   let professionalData:any[] = []
   for (let i = 0; i < professionalDataFromDB.length; i++) {
@@ -144,7 +153,18 @@ export const getIdByCurp = async (req:Request, res:Response) => {
   log(`Inicia getIdByCurp ${req.params.id}`)
   const userFromDB:any = await Clients.findOne({
     where: { curp: req.params.id },
-    attributes: ['id', 'name', 'secondName', 'lastName', 'secondLastName', 'curp', 'rfc', 'nss', 'phone', 'createdAt']
+    attributes: [
+      'id',
+      'name',
+      'secondName',
+      'lastName',
+      'secondLastName',
+      'curp',
+      'rfc',
+      'nss',
+      'phone',
+      'createdAt'
+    ]
   })
   if (!userFromDB) return res.status(404).json(returnError('No se encontró el registro'))
   console.log(`user id: ${userFromDB.id}`)
