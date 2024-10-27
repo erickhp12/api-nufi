@@ -5,6 +5,6 @@ import { getProfile } from '../controllers/users.controller';
 
 const router = Router()
 
-router.get('profile/:id', getProfile)
+router.get('/:id', getProfile)
 
 export default router
