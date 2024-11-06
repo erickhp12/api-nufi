@@ -73,7 +73,7 @@ export const getClients = async (req:Request, res:Response) => {
 export const getClientDetail = async (req:Request, res:Response) => {
   log(`Inicia getClientDetail ${req.params.id}`)
   let data:any = {}
-  const userFromDB:any = await Clients.findOne({
+  let userFromDB:any = await Clients.findOne({
     where: {
       [Op.or]: [
         {
@@ -101,7 +101,12 @@ export const getClientDetail = async (req:Request, res:Response) => {
       'createdAt'
     ]
   })
-  console.log(`user: ${JSON.stringify(userFromDB)}`)
+  console.log('userFromDB 1', userFromDB.id)
+  if (!userFromDB.id) {
+    console.log('userFromDB 2 XXXXXXXXXXXXXXXXXXX', userFromDB)
+    userFromDB = await Clients.create({ name:'', secondName:'', lastName:'', secondLastName:'', email:'', rfc:'', curp:req.params.id, nss:'' })
+  }
+  console.log(`user 3: ${JSON.stringify(userFromDB)}`)
   let user = {
     id: userFromDB.id,
     name: userFromDB.name,

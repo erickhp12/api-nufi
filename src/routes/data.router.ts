@@ -19,6 +19,7 @@ import {
 import moment from 'moment';
 import fs from 'fs';
 import path from 'path';
+import { setKeys } from '../utils/middlewares.ts';
 
 const router = Router()
 
@@ -40,15 +41,15 @@ const upload = multer({ storage: storage })
 
 router
     // .post('/', getClient, getPersonalData)
-    .post('/curp/:client_id', registerCurp)
-    .post('/rfc/:client_id', registerRfc)
-    .post('/nss/:client_id', registerNss)
-    .post('/siger/:client_id', registerSiger)
-    .post('/professional-data/:client_id', registerProfessionalData)
-    .post('/rug-data/:client_id', registerRugData)
-    .post('/blacklist/:client_id', registerBlackList)
-    .post('/juditial/:client_id', registerJuditial)
-    .post('/google/:client_id', registerGoogle)
+    .post('/curp/:client_id', setKeys, registerCurp)
+    .post('/rfc/:client_id', setKeys, registerRfc)
+    .post('/nss/:client_id', setKeys, registerNss)
+    .post('/siger/:client_id', setKeys, registerSiger)
+    .post('/professional-data/:client_id', setKeys, registerProfessionalData)
+    .post('/rug-data/:client_id', setKeys, registerRugData)
+    .post('/blacklist/:client_id', setKeys, registerBlackList)
+    .post('/juditial/:client_id', setKeys, registerJuditial)
+    .post('/google/:client_id', setKeys, registerGoogle)
     
 router
     .get('/nss/:client_id', getNss)

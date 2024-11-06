@@ -21,153 +21,34 @@ import { WorkHistory } from '../models/workHistory.js'
 import { MindeeIdentification } from '../models/mindeeIdentificationModel.js';
 import { Configurations } from '../models/configModel.js';
 import { Google } from '../models/googleModel.js';
+import { NufiHistoryLogs } from '../models/nufiHistoryLogsModel.js';
 
 const URL:string   = process.env.NUFU_API_URL || ''
-const token:string = process.env.NUFI_API_KEY || ''
-const judicialToken:string = process.env.NUFI_API_KEY_JUDITIAL || ''
-const blacklistToken:string = process.env.NUFI_API_KEY_BLACKLIST || ''
+// const token:string = process.env.NUFI_API_KEY || ''
+// const judicialToken:string = process.env.NUFI_API_KEY_JUDITIAL || ''
+// const blacklistToken:string = process.env.NUFI_API_KEY_BLACKLIST || ''
 
 
-const headers:Object  = {
-  headers: {
-    'Ocp-Apim-Subscription-Key':token
-  }
-}
-const headers2:Object  = {
-  headers: {
-    'NUFI-API-KEY':token
-  }
-}
-const headers3:Object = {
-  headers: {
-    'NUFI-API-KEY':judicialToken
-  }
-}
-const headers4:Object = {
-  headers: {
-    'NUFI-API-KEY':blacklistToken
-  }
-}
-
-const dataMinee:any = {
-  givenNames: [
-    {
-      value: 'ERICK',
-      reconstructed: false,
-      polygon: [],
-      confidence: 0,
-    },
-    {
-      value: 'FERNANDO',
-      reconstructed: false,
-      polygon: [],
-      confidence: 0,
-    }
-  ],
-  surnames: [
-     {
-      value: 'HOLGUIN',
-      reconstructed: false,
-      polygon: [],
-      confidence: 0,
-    },
-     {
-      value: 'PARDAVELL',
-      reconstructed: false,
-      polygon: [],
-      confidence: 0,
-    }
-  ],
-  address:  {
-    value: 'CAUREA SUR 6716 FRACC AUREA RESIDENCIAL 32659 JUAREZ,CHIH.',
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  birthDate: {
-    value: '1993-06-25',
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  birthPlace:  {
-    value: undefined,
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  countryOfIssue:  {
-    value: 'MEX',
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  documentNumber:  {
-    value: 'HLPRER93062524H200',
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  documentType: {
-    value: 'VOTER_REGISTRATION',
-    reconstructed: false,
-    confidence: 0
-  },
-  expiryDate: {
-    value: '2032-03-01',
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  issueDate: {
-    value: undefined,
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  mrzLine1:  {
-    value: undefined,
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  mrzLine2:  {
-    value: undefined,
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  mrzLine3:  {
-    value: undefined,
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  nationality:  {
-    value: 'MEX',
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  personalNumber:  {
-    value: 'HOPE930625HSPLRR01',
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  sex:  {
-    value: 'M',
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  },
-  stateOfIssue:  {
-    value: 'CHIH',
-    reconstructed: false,
-    polygon: [],
-    confidence: 0,
-  }
-}
+// const headers:Object  = {
+//   headers: {
+//     'Ocp-Apim-Subscription-Key':token
+//   }
+// }
+// const headers2:Object  = {
+//   headers: {
+//     'NUFI-API-KEY':token
+//   }
+// }
+// const headers3:Object = {
+//   headers: {
+//     'NUFI-API-KEY':judicialToken
+//   }
+// }
+// const headers4:Object = {
+//   headers: {
+//     'NUFI-API-KEY':blacklistToken
+//   }
+// }
 
 
 export const registerCurp = async (req:any, res:Response) => {
@@ -182,8 +63,14 @@ export const registerCurp = async (req:any, res:Response) => {
     const curpFromDB:any = await Curp.findOne({ where: { client_id: client_id }})
     if (curpFromDB) return res.status(200).json(returnSuccess('El CURP obtenido correctamente', {}, 1))
     
-    const { data } = await axios.post(`${URL}/Curp/v1/consulta`, { 'tipo_busqueda': 'curp', curp }, headers)
+    NufiHistoryLogs.create({
+      module: 'CURP',
+      endpoint: `${URL}/Curp/v1/consulta`,
+      description: curp
+    })
+    const { data } = await axios.post(`${URL}/Curp/v1/consulta`, { 'tipo_busqueda': 'curp', curp }, {headers: { 'Ocp-Apim-Subscription-Key':req.keys.nufiKeyGeneral }})
     log(`[validateCurp response] Response: ${JSON.stringify(data)}`)
+    
     const curpCreated = await Curp.create({
       client_id: client_id, 
       curp: data.data.curpdata[0].curp,
@@ -225,7 +112,6 @@ export const registerRfc = async (req:any, res:Response) => {
   try {
     log(`Inicia registerRfc ${JSON.stringify(req.body)}`)
     let { rfc } = req.body
-    await sleep(5000)
     const { client_id } = req.params
     const clientFromDB:any = await Clients.findByPk(client_id)
     
@@ -243,8 +129,14 @@ export const registerRfc = async (req:any, res:Response) => {
           apellido_materno: clientFromDB.secondLastName,
           fecha_nacimiento: moment(clientFromDB.dob).format('DD/MM/YYYY')
         }
+        
         log(`[getRFC] URL: ${URL}/api/v1/calcular_rfc, body: ${JSON.stringify(body)}`)
-        const { data }:any = await axios.post(`${URL}/api/v1/calcular_rfc`, body, headers)
+        NufiHistoryLogs.create({ 
+          module: 'RFC',
+          endpoint: `${URL}/api/v1/calcular_rfc`,
+          description: JSON.stringify(body)
+        })
+        const { data }:any = await axios.post(`${URL}/api/v1/calcular_rfc`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
         log(`[getRFC] Response: ${JSON.stringify(data)}`)
         
         if (data.status === 'success') {
@@ -260,7 +152,7 @@ export const registerRfc = async (req:any, res:Response) => {
     
     try {
       log(`[2] - se registró el RFC correctamente, inicia validateRFC: ${clientFromDB.rfc}`)
-      const { data }:any = await axios.post(`${URL}/estatusrfc/valida`, {rfc: clientFromDB.rfc}, headers)
+      const { data }:any = await axios.post(`${URL}/estatusrfc/valida`, {rfc: clientFromDB.rfc}, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
       log(`validateRFC data: ${JSON.stringify(data)}`)
       log(`validateRFC message: ${JSON.stringify(data.message)}`)
       const RFCFromDB2:any = await Rfc.findOne({ where: { client_id: client_id }})
@@ -291,7 +183,13 @@ export const registerNss = async (req:any, res:Response) => {
   
   try {
     log(`inicia solicitud de NSS, curp: ${curp}`)
-    const { data } = await axios.get(`${URL}/numero_seguridad_social/v2/consultar?curp=${curp}`, headers2)
+    
+    NufiHistoryLogs.create({
+      module: 'NSS',
+      endpoint: `${URL}/numero_seguridad_social/v2/consultar?curp=${curp}`,
+      description: curp
+    })
+    const { data } = await axios.get(`${URL}/numero_seguridad_social/v2/consultar?curp=${curp}`, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
     log(`Respuesta directa de consulta de NSS: ${JSON.stringify(data)}`)
     await Webhook.create({ client_id: client_id, uuid_nss: data.data.uuid })
     
@@ -317,8 +215,14 @@ export const registerSiger = async (req:any, res:Response) => {
     const body:object = {
       'socio': `${clientFromDB.name} ${clientFromDB.secondName} ${clientFromDB.lastName} ${clientFromDB.secondLastName}`
     }
+    
     log(`Antes de enviar a consultar a nufi SIGER: ${JSON.stringify(body)}`)
-    const responseFromApi:any = await axios.post(`${URL}/siger/v4/busqueda_socio`, body, headers2)
+    NufiHistoryLogs.create({
+      module: 'Registro público de comercio - SIGER',
+      endpoint: `${URL}/siger/v4/busqueda_socio`,
+      description: JSON.stringify(body)
+    })
+    const responseFromApi:any = await axios.post(`${URL}/siger/v4/busqueda_socio`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
     log(`Respuesta directa de consulta de SIGER: ${JSON.stringify(responseFromApi.data)}`)
 
     if (responseFromApi && responseFromApi.data.count === 0) {
@@ -355,7 +259,12 @@ export const registerProfessionalData = async (req:any, res:any) => {
       'apellido_materno': clientFromDB.secondLastName
     }
     log(`Antes de enviar a consultar a nufi registerProfessionalData: ${JSON.stringify(body)}`)
-    const responseFromApi:any = await axios.post(`${URL}/CedulaProfesional/consultar`, body, headers)
+    NufiHistoryLogs.create({
+      module: 'Registro nacional de profesiones',
+      endpoint: `${URL}/CedulaProfesional/consultar`,
+      description: JSON.stringify(body)
+    })
+    const responseFromApi:any = await axios.post(`${URL}/CedulaProfesional/consultar`, body, {headers: { 'Ocp-Apim-Subscription-Key':req.keys.nufiKeyGeneral }})
     log(`Respuesta directa de consulta de CedulaProfesional: ${JSON.stringify(responseFromApi.data)}`)
     
     
@@ -407,7 +316,12 @@ export const registerRugData = async (req:any, res:any) => {
       'rfc_otorgante': ''
     }
     log(`Antes de enviar a consultar a nufi rugData: ${JSON.stringify(body)}`)
-    const responseFromApi:any = await axios.post(`${URL}/rug/v3/consulta`, body, headers2)
+    NufiHistoryLogs.create({
+      module: 'Registro único de garantías',
+      endpoint: `${URL}/rug/v3/consulta`,
+      description: JSON.stringify(body)
+    })
+    const responseFromApi:any = await axios.post(`${URL}/rug/v3/consulta`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
     log(`Respuesta directa de consulta de RUG: ${JSON.stringify(responseFromApi.data)}`)
 
     if (responseFromApi.data.length === 0) {
@@ -448,7 +362,12 @@ export const registerBlackList = async (req:any, res:any) => {
     }
     
     log(`Antes de enviar a consultar a nufi blacklist: ${JSON.stringify(body)}`)
-    const responseFromApi:any = await axios.post(`${URL}/perfilamiento/v1/aml`, body, headers2)
+    const responseFromApi:any = await axios.post(`${URL}/perfilamiento/v1/aml`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
+    NufiHistoryLogs.create({
+      module: 'Listas negras',
+      endpoint: `${URL}/perfilamiento/v1/aml`,
+      description: JSON.stringify(body)
+    })
     // const responseFromApi:any = {"status":"success","code":200,"mensaje":"no se encotraron resultados","registros":0,"data":[]}
     log(`Respuesta directa de consulta de blacklist: ${JSON.stringify(responseFromApi.data)}`)
 
@@ -481,7 +400,12 @@ export const registerJuditial = async (req:any, res:any) => {
       'estado': 'nacional'
     }
     log(`Antes de enviar a consultar a nufi expedientes judiciales: ${JSON.stringify(body)}`)
-    const responseFromApi:any = await axios.post(`${URL}/antecedentes_judiciales/v2/persona_fisica_nacional`, body, headers3)
+    NufiHistoryLogs.create({
+      module: 'Expedientes judiciales',
+      endpoint: `${URL}/antecedentes_judiciales/v2/persona_fisica_nacional`,
+      description: JSON.stringify(body)
+    })
+    const responseFromApi:any = await axios.post(`${URL}/antecedentes_judiciales/v2/persona_fisica_nacional`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyJuditial }})
     log(`Respuesta directa de consulta de expedientes judiciales: ${JSON.stringify(responseFromApi.data)}`)
 
     if (responseFromApi.data.numero_resultados > 0) {
@@ -523,7 +447,12 @@ export const registerGoogle = async (req:any, res:any) => {
     }
 
     log(`Antes de enviar a consultar a nufi noticias en Google: ${JSON.stringify(body)}`)
-    const responseFromApi:any = await axios.post(`${URL}/noticias/v2/busqueda`, body, headers2)
+    NufiHistoryLogs.create({
+      module: 'Noticias en Google',
+      endpoint: `${URL}/noticias/v2/busqueda`,
+      description: JSON.stringify(body)
+    })
+    const responseFromApi:any = await axios.post(`${URL}/noticias/v2/busqueda`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
     log(`Respuesta directa de consulta de noticias en Google: ${JSON.stringify(responseFromApi.data)}`)
 
     await Google.create({ client_id: client_id, data: responseFromApi.data.data, requested: true })
@@ -557,7 +486,7 @@ export const getNss = async (req:any, res:Response) => {
       uuid_historial: webhookData.uuid_historial || '',
     }
     log(`Antes de enviar a consultar a nufi get status: ${JSON.stringify(body)}`)
-    const responseFromAPI:any = await axios.post(`${URL}/numero_seguridad_social/v2/status`, body, headers2)
+    const responseFromAPI:any = await axios.post(`${URL}/numero_seguridad_social/v2/status`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
     log(`[getStatus response] data ${JSON.stringify(responseFromAPI.data)}`)
     if (responseFromAPI.data.status === 'success') {
       await WorkHistory.create({ client_id: client_id, jobs: responseFromAPI.data })
@@ -591,206 +520,207 @@ export const getWebhookData = (req:Request, res:Response) => {
 }
 
 
-const getSATInformation = async(clientId:string, rfc:string) => {
-  try {
-    let certificados:object[] = []
+// const getSATInformation = async(clientId:string, rfc:string) => {
+//   try {
+//     let certificados:object[] = []
     
-    const certificatesFromDB = await Certificates.findAll({ where: { client_id: clientId }})
-    if (certificatesFromDB.length > 0) return certificatesFromDB
+//     const certificatesFromDB = await Certificates.findAll({ where: { client_id: clientId }})
+//     if (certificatesFromDB.length > 0) return certificatesFromDB
     
-    log(`[getSATInformation] URL: ${URL}/certificadosat/v1/consultar/consultar, rfc: ${rfc}`)
-    const { data }:any = await axios.post(`${URL}/certificadosat/v1/consultar/consultar`, {rfc}, headers2)
-    for (let certificado of data.data.certificados) {
-      const certificatedCreated = await Certificates.create({
-        client_id: clientId,
-        numero_serie: certificado.numero_serie,
-        estado: certificado.estado,
-        tipo: certificado.tipo,
-        fecha_inicial: certificado.fecha_inicial,
-        fecha_final: certificado.fecha_final,
-        certificado: certificado.certificado
-      })
-      certificados.push(certificatedCreated)
-    }
-    return certificados
-  } catch (error:any) {
-    log(`[X] getSATInformation Error [X]: ${error.message}`)
-    return {}
-  }
-}
+//     log(`[getSATInformation] URL: ${URL}/certificadosat/v1/consultar/consultar, rfc: ${rfc}`)
+//     const { data }:any = await axios.post(`${URL}/certificadosat/v1/consultar/consultar`, {rfc}, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
+//     for (let certificado of data.data.certificados) {
+//       const certificatedCreated = await Certificates.create({
+//         client_id: clientId,
+//         numero_serie: certificado.numero_serie,
+//         estado: certificado.estado,
+//         tipo: certificado.tipo,
+//         fecha_inicial: certificado.fecha_inicial,
+//         fecha_final: certificado.fecha_final,
+//         certificado: certificado.certificado
+//       })
+//       certificados.push(certificatedCreated)
+//     }
+//     return certificados
+//   } catch (error:any) {
+//     log(`[X] getSATInformation Error [X]: ${error.message}`)
+//     return {}
+//   }
+// }
 
 
 
-const getSAT69B = async(rfc:string) => {
-  try {
-    const response:any = await axios.post(`${URL}/contribuyentes/v1/obtener_contribuyente`, {rfc}, headers)
-    return response.data
-  } catch (error:any) {
-    log(`[X] getSAT69B Error [X]: ${error.message}`)
-    return {}
-  }
-}
+// const getSAT69B = async(rfc:string) => {
+//   try {
+//     const response:any = await axios.post(`${URL}/contribuyentes/v1/obtener_contribuyente`, {rfc}, headers)
+//     return response.data
+//   } catch (error:any) {
+//     log(`[X] getSAT69B Error [X]: ${error.message}`)
+//     return {}
+//   }
+// }
 
 
-const getSAT74 = async(rfc:string, socialReason:string, state:string) => {
-  try {
-    const body:object = {
-      'rfc': rfc,
-      'razon_social': socialReason,
-      'fecha_autorizacion': '11/09/2023',
-      'fecha_publicacion': '19/10/2023',
-      'entidad_federativa': state
-    }
-    const response:any = await axios.post(`${URL}/contribuyentes_74/v1/reduccion_multas`, body, headers2)
-    return response.data
-  } catch (error:any) {
-    log(`[X] getSAT74 Error [X]: ${error.message}`)
-    return {}
-  }
-}
+// const getSAT74 = async(rfc:string, socialReason:string, state:string) => {
+//   try {
+//     const body:object = {
+//       'rfc': rfc,
+//       'razon_social': socialReason,
+//       'fecha_autorizacion': '11/09/2023',
+//       'fecha_publicacion': '19/10/2023',
+//       'entidad_federativa': state
+//     }
+//     const response:any = await axios.post(`${URL}/contribuyentes_74/v1/reduccion_multas`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
+//     return response.data
+//   } catch (error:any) {
+//     log(`[X] getSAT74 Error [X]: ${error.message}`)
+//     return {}
+//   }
+// }
 
 
-const getSAT69L = async(rfc:string, socialReason:string, state:string) => {
-  try {
-    const body:object = {
-      'rfc': rfc,
-      'razon_social': socialReason,
-      'fecha_publicacion': '01/01/2014',
-      'entidad_federativa': state
-    }
-    const response:any = await axios.post(`${URL}/contribuyentes_69/v1/no_localizados`, body, headers2)
-    return response.data
-  } catch (error:any) {
-    log(`[X] getSAT69L Error [X]: ${error.message}`)
-    return {}
-  }
-}
+// const getSAT69L = async(rfc:string, socialReason:string, state:string) => {
+//   try {
+//     const body:object = {
+//       'rfc': rfc,
+//       'razon_social': socialReason,
+//       'fecha_publicacion': '01/01/2014',
+//       'entidad_federativa': state
+//     }
+//     const response:any = await axios.post(`${URL}/contribuyentes_69/v1/no_localizados`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
+//     return response.data
+//     return {}
+//   } catch (error:any) {
+//     log(`[X] getSAT69L Error [X]: ${error.message}`)
+//     return {}
+//   }
+// }
 
 
-const getJuditialRecord = async(name:string, lastName:string, secondLastName:string) => {
-  try {
-    const body:object = {
-      'nombre': name,
-      'paterno': lastName,
-      'materno': secondLastName,
-      'detalle': true,
-      'estado': 'nacional'
-    }
-    const response:any = await axios.post(`${URL}/antecedentes_judiciales/v2/persona_fisica_nacional`, body, headers3)
-    return response.data
-  } catch (error:any) {
-    log(`[X] getJuditialRecord Error [X]: ${error.message}`)
-    return {}
-  }
-}
+// const getJuditialRecord = async(name:string, lastName:string, secondLastName:string) => {
+//   try {
+//     const body:object = {
+//       'nombre': name,
+//       'paterno': lastName,
+//       'materno': secondLastName,
+//       'detalle': true,
+//       'estado': 'nacional'
+//     }
+//     const response:any = await axios.post(`${URL}/antecedentes_judiciales/v2/persona_fisica_nacional`, body, {headers: { 'NUFI-API-KEY': req.keys.nufiKeyJuditial }})
+//     return response.data
+//   } catch (error:any) {
+//     log(`[X] getJuditialRecord Error [X]: ${error.message}`)
+//     return {}
+//   }
+// }
 
 
-const getWeeksWorked = async(curp:string, nss:string) => {
-  try {
-    let detail:any = {}
-    log(`[getWeeksWorked] URL: ${URL}/numero_seguridad_social/v2/consultar_historial?curp=${curp}&nss=${nss}`)
-    const response:any = await axios.get(`${URL}/numero_seguridad_social/v2/consultar_historial?curp=${curp}&nss=${nss}`, headers2)
-    if (response.data && response.data.data && response.data.data.uuid) {
-      detail = await getStatusNssHistory(response.data.data.uuid)
-      console.log('detail', detail)
-      return detail
-    } else {
-      return response.data
-    }
-  } catch (error:any) {
-    log(`[X] getWeeksWorked Error [X]: ${error.message}`)
-    return {}
-  }
-}
+// const getWeeksWorked = async(curp:string, nss:string) => {
+//   try {
+//     let detail:any = {}
+//     log(`[getWeeksWorked] URL: ${URL}/numero_seguridad_social/v2/consultar_historial?curp=${curp}&nss=${nss}`)
+//     const response:any = await axios.get(`${URL}/numero_seguridad_social/v2/consultar_historial?curp=${curp}&nss=${nss}`, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
+//     if (response.data && response.data.data && response.data.data.uuid) {
+//       detail = await getStatusNssHistory(response.data.data.uuid)
+//       console.log('detail', detail)
+//       return detail
+//     } else {
+//       return response.data
+//     }
+//   } catch (error:any) {
+//     log(`[X] getWeeksWorked Error [X]: ${error.message}`)
+//     return {}
+//   }
+// }
 
 
-const getStatusNssHistory = async(uuid1:string) => {
-  try {
-    const body: object = {
-      "uuid_nss": uuid1,
-      "uuid_historial": uuid1
-    }
-    const response: any = await axios.post(`${URL}/numero_seguridad_social/v2/status`, body, headers2)
-    return response.data
-  } catch (error:any) {
-    log(`[X] getStatusNssHistory Error [X]: ${error.message}`)
-    return {}
-  }
-}
+// const getStatusNssHistory = async(uuid1:string) => {
+//   try {
+//     const body: object = {
+//       "uuid_nss": uuid1,
+//       "uuid_historial": uuid1
+//     }
+//     const response: any = await axios.post(`${URL}/numero_seguridad_social/v2/status`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
+//     return response.data
+//   } catch (error:any) {
+//     log(`[X] getStatusNssHistory Error [X]: ${error.message}`)
+//     return {}
+//   }
+// }
 
-const getInfonavitData = async() => {
-  try {
-    const body:any = {
-        'info_persona': { 'nss': '' },
-        'webhook': ''
-    }
-    const response:any = await axios.post(`${URL}/credito_infonavit/v1/credito_infonavit`, body, headers2)
-    return response.data
-  } catch (error:any) {
-    console.log('[X] getInfonavitData Error [X]', JSON.stringify(error))
-    return {}
-  }
-}
+// const getInfonavitData = async() => {
+//   try {
+//     const body:any = {
+//         'info_persona': { 'nss': '' },
+//         'webhook': ''
+//     }
+//     const response:any = await axios.post(`${URL}/credito_infonavit/v1/credito_infonavit`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
+//     return response.data
+//   } catch (error:any) {
+//     console.log('[X] getInfonavitData Error [X]', JSON.stringify(error))
+//     return {}
+//   }
+// }
 
-const getEnrichmentPhone = async(phone:string) => {
-  try {
-    const body:object = {
-      'telefono': phone
-    }
-    const { data } = await axios.post(`${URL}/enriquecimientoidentidades/v3/telefono`, body, headers4)
-    return data
-  } catch (error:any) {
-    log(`[X] getEnrichmentPhone Error [X]: ${JSON.stringify(error)}`)
-    return {}
-  }
-}
+// const getEnrichmentPhone = async(phone:string) => {
+//   try {
+//     const body:object = {
+//       'telefono': phone
+//     }
+//     const { data } = await axios.post(`${URL}/enriquecimientoidentidades/v3/telefono`, body, headers4)
+//     return data
+//   } catch (error:any) {
+//     log(`[X] getEnrichmentPhone Error [X]: ${JSON.stringify(error)}`)
+//     return {}
+//   }
+// }
 
 
-const getEnrichmentName = async(firstName:string, secondName:string, lastName:string, secondLastName:string) => {
-  try {
-    const body:object = {
-      nombre:firstName + ' ' + secondName,
-      apellidos:lastName + ' ' + secondLastName
-    }
-    const response:any = await axios.post(`${URL}/enriquecimientoidentidades/v3/nombre`, body, headers4)
-    return response.data
-  } catch (error:any) {
-    log(`[X] getEnrichmentName Error [X]: ${error.message}`)
-    return {}
-  }
-}
+// const getEnrichmentName = async(firstName:string, secondName:string, lastName:string, secondLastName:string) => {
+//   try {
+//     const body:object = {
+//       nombre:firstName + ' ' + secondName,
+//       apellidos:lastName + ' ' + secondLastName
+//     }
+//     const response:any = await axios.post(`${URL}/enriquecimientoidentidades/v3/nombre`, body, headers4)
+//     return response.data
+//   } catch (error:any) {
+//     log(`[X] getEnrichmentName Error [X]: ${error.message}`)
+//     return {}
+//   }
+// }
 
-const getGoogleNews = async(fullName:string) => {
-  try {
-    const body:object = {
-      'consulta':fullName,
-      'tipo_noticia':'news',
-      'pagina':1,
-      'numero_resultados': 5,
-      'localizacion':'mx',
-      'lenguaje':'es'
-    }
-    const response:any = await axios.post(`${URL}/noticias/v2/busqueda`, body, headers2)
-    return response.data
-  } catch (error:any) {
-    log(`[X] getGoogleNews Error [X]: ${error.message}`)
-    return {}
-  }
-}
+// const getGoogleNews = async(fullName:string) => {
+//   try {
+//     const body:object = {
+//       'consulta':fullName,
+//       'tipo_noticia':'news',
+//       'pagina':1,
+//       'numero_resultados': 5,
+//       'localizacion':'mx',
+//       'lenguaje':'es'
+//     }
+//     const response:any = await axios.post(`${URL}/noticias/v2/busqueda`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
+//     return response.data
+//   } catch (error:any) {
+//     log(`[X] getGoogleNews Error [X]: ${error.message}`)
+//     return {}
+//   }
+// }
 
-const fillData = async(clientId:any) => {
-  const curpData:any = await Curp.findOne({ where: { client_id: clientId }})
-  const client:any = await Clients.findByPk(clientId)
-  if (client && curpData) {
-    client.name = curpData.nombres.split(' ')[0]
-    client.secondName = curpData.nombres.split(' ')[1]
-    client.lastName = curpData.apellidos.split(' ')[0]
-    client.secondLastName = curpData.apellidos.split(' ')[1]
-    client.state = curpData.entidad
-    client.dob = new Date(`${curpData.curp.substring(6, 8)}/${curpData.curp.substring(8, 10)}/${curpData.curp.substring(4, 6)}`)
-    client.save()
-  }
-}
+// const fillData = async(clientId:any) => {
+//   const curpData:any = await Curp.findOne({ where: { client_id: clientId }})
+//   const client:any = await Clients.findByPk(clientId)
+//   if (client && curpData) {
+//     client.name = curpData.nombres.split(' ')[0]
+//     client.secondName = curpData.nombres.split(' ')[1]
+//     client.lastName = curpData.apellidos.split(' ')[0]
+//     client.secondLastName = curpData.apellidos.split(' ')[1]
+//     client.state = curpData.entidad
+//     client.dob = new Date(`${curpData.curp.substring(6, 8)}/${curpData.curp.substring(8, 10)}/${curpData.curp.substring(4, 6)}`)
+//     client.save()
+//   }
+// }
 
 
 export const readIdentification = async (req:any, res:any) => {

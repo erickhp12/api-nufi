@@ -1,6 +1,6 @@
 import { log } from './utils'
 import { Clients } from '../models/clientsModel'
-import { NextFunction } from 'express'
+import { Configurations } from '../models/configModel'
 
 export async function getClient (req:any, res:any, next:any) {
   try {
@@ -10,5 +10,16 @@ export async function getClient (req:any, res:any, next:any) {
     next()
   } catch (error:any) {
     log(`[X] getClient [X] - ${error.message}`)
+  }
+}
+
+
+export async function setKeys (req:any, res:any, next:any) {
+  try {
+    const keys = await Configurations.findOne()
+    req.keys = keys
+    next()
+  } catch (error:any) {
+    log(`[X] setKeys [X] - ${error.message}`)
   }
 }
