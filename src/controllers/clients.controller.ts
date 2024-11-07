@@ -73,37 +73,19 @@ export const getClients = async (req:Request, res:Response) => {
 export const getClientDetail = async (req:Request, res:Response) => {
   log(`Inicia getClientDetail ${req.params.id}`)
   let data:any = {}
-  let userFromDB:any = await Clients.findOne({
-    where: {
-      [Op.or]: [
-        {
-          id: req.params.id
-        },
-        {
-          curp: { [Op.like]: `%${req.params.id}%` }
-        }
-      ]
-    },
-    attributes: [
-      'id',
-      'name',
-      'secondName',
-      'lastName',
-      'secondLastName',
-      'curp',
-      'rfc',
-      'dob',
-      'nss',
-      'phone',
-      'comments',
-      'status',
-      'revision_completed',
-      'createdAt'
-    ]
-  })
-  console.log('userFromDB 1', userFromDB.id)
-  if (!userFromDB.id) {
-    console.log('userFromDB 2 XXXXXXXXXXXXXXXXXXX', userFromDB)
+  let userFromDB:any = await Clients.findOne({ where: { id: req.params.id } })
+  console.log('Checando si se encontró el candidato por el ID', JSON.stringify(userFromDB))
+  if (!userFromDB) {
+    log('No se encontró por id, buscando por curp')
+    userFromDB = await Clients.findOne({
+      where: {
+        curp: { [Op.like]: `%${req.params.id}%` }
+      }
+    })
+  }
+  console.log('Checando si se encontró el candidato por el ID', JSON.stringify(userFromDB))
+  if (!userFromDB) {
+    log('No se encontró por CURP se crea un nuevo registro')
     userFromDB = await Clients.create({ name:'', secondName:'', lastName:'', secondLastName:'', email:'', rfc:'', curp:req.params.id, nss:'' })
   }
   console.log(`user 3: ${JSON.stringify(userFromDB)}`)

@@ -14,7 +14,8 @@ import {
     registerGoogle,
     getNss,
     readIdentification,
-    deleteIdentificationById
+    deleteIdentificationById,
+    readNss
  } from '../controllers/data.controller.ts'
 import moment from 'moment';
 import fs from 'fs';
@@ -54,6 +55,7 @@ router
 router
     .get('/nss/:client_id', getNss)
     .post('/mindee-identification/:client_id', upload.single('file'), readIdentification)
+    .post('/mindee-nss/:client_id', upload.single('file'), readNss)
 
 router.delete('/professional-data/:id', deleteProfessionalDataById)
 router.delete('/identification/:id', deleteIdentificationById)

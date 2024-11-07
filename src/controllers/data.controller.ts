@@ -22,6 +22,7 @@ import { MindeeIdentification } from '../models/mindeeIdentificationModel.js';
 import { Configurations } from '../models/configModel.js';
 import { Google } from '../models/googleModel.js';
 import { NufiHistoryLogs } from '../models/nufiHistoryLogsModel.js';
+import { MindeeNss } from '../models/mindeeNssModel.js';
 
 const URL:string   = process.env.NUFU_API_URL || ''
 // const token:string = process.env.NUFI_API_KEY || ''
@@ -136,7 +137,8 @@ export const registerRfc = async (req:any, res:Response) => {
           endpoint: `${URL}/api/v1/calcular_rfc`,
           description: JSON.stringify(body)
         })
-        const { data }:any = await axios.post(`${URL}/api/v1/calcular_rfc`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
+        console.log('req.keys.nufiKeyGeneral', req.keys.nufiKeyGeneral)
+        const { data }:any = await axios.post(`${URL}/api/v1/calcular_rfc`, body, {headers: { 'Ocp-Apim-Subscription-Key':req.keys.nufiKeyGeneral }})
         log(`[getRFC] Response: ${JSON.stringify(data)}`)
         
         if (data.status === 'success') {
@@ -152,7 +154,7 @@ export const registerRfc = async (req:any, res:Response) => {
     
     try {
       log(`[2] - se registró el RFC correctamente, inicia validateRFC: ${clientFromDB.rfc}`)
-      const { data }:any = await axios.post(`${URL}/estatusrfc/valida`, {rfc: clientFromDB.rfc}, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
+      const { data }:any = await axios.post(`${URL}/estatusrfc/valida`, {rfc: clientFromDB.rfc}, {headers: { 'Ocp-Apim-Subscription-Key':req.keys.nufiKeyGeneral }})
       log(`validateRFC data: ${JSON.stringify(data)}`)
       log(`validateRFC message: ${JSON.stringify(data.message)}`)
       const RFCFromDB2:any = await Rfc.findOne({ where: { client_id: client_id }})
@@ -324,7 +326,7 @@ export const registerRugData = async (req:any, res:any) => {
     const responseFromApi:any = await axios.post(`${URL}/rug/v3/consulta`, body, {headers: { 'NUFI-API-KEY':req.keys.nufiKeyGeneral }})
     log(`Respuesta directa de consulta de RUG: ${JSON.stringify(responseFromApi.data)}`)
 
-    if (responseFromApi.data.length === 0) {
+    if (responseFromApi.data.data.length === 0) {
       await RugData.create({ client_id: client_id, data: 'No se encontraron resultados', requested: true })
       return res.status(200).json(returnSuccess('No se encontraron datos de RUG', {}, 1))
     } else {
@@ -724,21 +726,22 @@ export const getWebhookData = (req:Request, res:Response) => {
 
 
 export const readIdentification = async (req:any, res:any) => {
+  try {
     console.log('inicia lectura de ID', req.file)
-    try {
-
     const { client_id } = req.params
 
     const identificationFromDB:any = await MindeeIdentification.findOne({ where: { client_id: client_id }})
-    // log(`Se busca desde la base de datos: ${JSON.stringify(identificationFromDB)}`)
+    log(`Se busca desde la base de datos: ${JSON.stringify(identificationFromDB)}`)
     if (identificationFromDB) return res.status(200).json(returnSuccess('Información obtenida correctamente', identificationFromDB, 1))
   
     log(`No existe en BD: Inicia consulta ${client_id}`)
-    const configurations:any = await Configurations.findOne({ where: { id: 1 }})    
-    log(`mindeKey: ${JSON.stringify(configurations)}`)
+    const configurations:any = await Configurations.findByPk(1)
     const mindeeClient = new mindee.Client({ apiKey: configurations.mindeeKey });
     const inputSource = mindeeClient.docFromPath(req.file.path, 'image/jpeg');
-    const apiResponse = mindeeClient.enqueueAndParse(mindee.product.InternationalIdV2,inputSource);
+    const apiResponse = mindeeClient.enqueueAndParse(
+      mindee.product.InternationalIdV2,
+      inputSource
+    );
     const data = await apiResponse.then(async (resp:any) => {
       log(`Respuesta directa de consulta de Minee InternationalID: ${JSON.stringify(resp.toString())}`)
       await MindeeIdentification.create({ client_id: client_id, mindeeID: resp.document, identificationPath: req.file.path })
@@ -751,14 +754,45 @@ export const readIdentification = async (req:any, res:any) => {
   }
 }
   
-  export const deleteIdentificationById = async (req:any, res:any) => {
-    log(`Inicia deleteIdentificationById ${req.params.id}`)
-    try {
-      const identification:any = await MindeeIdentification.findOne({ where: { client_id: req.params.id }})
-      identification.destroy()
-      return res.status(200).json(returnSuccess('Elemento eliminado correctamente', {}, 1))
-    } catch (error:any) {
-      log(`[X] data > controller, deleteIdentificationById Error al eliminar el registro de la identificación [X]: ${error.message}`)
-      return res.status(500).json(returnError('Ocurrió un error interno al eliminar de la identificación'))
-    }
+
+export const readNss = async (req:any, res:any) => {
+  try {
+    console.log('Inicia lectura de documento NSS', req.file)
+    const { client_id } = req.params
+
+    const identificationFromDB:any = await MindeeNss.findOne({ where: { client_id: client_id }})
+    log(`Se busca desde la base de datos: ${JSON.stringify(identificationFromDB)}`)
+    if (identificationFromDB) return res.status(200).json(returnSuccess('Información obtenida correctamente', identificationFromDB, 1))
+
+    log(`No existe en BD: Inicia consulta ${client_id}`)
+    const configurations:any = await Configurations.findByPk(1)
+    const mindeeClient = new mindee.Client({ apiKey: configurations.mindeeKey });
+    const inputSource = mindeeClient.docFromPath(req.file.path);
+    console.log('inputSource', inputSource)
+
+    const apiResponse = await mindeeClient.parse(
+      mindee.product.InvoiceV4,
+      inputSource
+    );
+    const data = apiResponse.then(async (resp:any) => {
+      log(`Respuesta directa de consulta de Minee InternationalID: ${JSON.stringify(resp.toString())}`)
+      await MindeeNss.create({ client_id: client_id, mindeeID: resp.document, identificationPath: req.file.path })
+      return resp.document
+    })
+    return res.status(201).json(returnSuccess('Se obtuvieron correctamente los datos de la identificación, recargar la página', data, 1));
+  } catch (error:any) {
+    log(`[X] data > controller, readNss Error al guardar los datos del NSS [X]: ${error.message}`)
+    return res.status(500).json(returnError('Ocurrió un error interno al validar el NSS'))
   }
+}
+export const deleteIdentificationById = async (req:any, res:any) => {
+  log(`Inicia deleteIdentificationById ${req.params.id}`)
+  try {
+    const identification:any = await MindeeIdentification.findOne({ where: { client_id: req.params.id }})
+    identification.destroy()
+    return res.status(200).json(returnSuccess('Elemento eliminado correctamente', {}, 1))
+  } catch (error:any) {
+    log(`[X] data > controller, deleteIdentificationById Error al eliminar el registro de la identificación [X]: ${error.message}`)
+    return res.status(500).json(returnError('Ocurrió un error interno al eliminar de la identificación'))
+  }
+}
